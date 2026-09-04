@@ -8,4 +8,3 @@ pydantic-settings>=2.0
 httpx
 python-dotenv
 alembic
-psycopg2
