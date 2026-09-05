@@ -1,21 +1,27 @@
 from fastapi import FastAPI
-from app.schemas import PredictRequest, PredictResponse
-from app.predictor import predictor
+from pydantic import BaseModel
 
-app = FastAPI(
-    title="SIH26106 ML Service",
-    version="2.0.0",
-    description="Independent ML inference service."
+from app.modules.ml.nlp_classifier import NLPPhishingClassifier
+
+app = FastAPI(title="SIH26106 NLP ML Service")
+
+classifier = NLPPhishingClassifier(
+    weights_path="models/best_model.pt"
 )
 
-@app.get("/")
-def root():
-    return {"service": "SIH26106 ML", "status": "running"}
+
+class PredictionRequest(BaseModel):
+    email_text: str
+
 
 @app.get("/health")
 def health():
-    return {"status": "healthy", "model": predictor.status()}
+    return {
+        "status": "ok",
+        "model": "NLPPhishingClassifier"
+    }
 
-@app.post("/predict", response_model=PredictResponse)
-def predict(request: PredictRequest):
-    return predictor.predict(request.features)
+
+@app.post("/predict")
+def predict(request: PredictionRequest):
+    return classifier.predict(request.email_text)
