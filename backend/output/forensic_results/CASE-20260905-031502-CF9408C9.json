@@ -1,0 +1,179 @@
+{
+  "case_id": "CASE-20260905-031502-CF9408C9",
+  "evidence": {
+    "case_id": "CASE-20260905-031502-CF9408C9",
+    "source_name": "b673b56e-1290-48fa-9bfd-4b7a3e7876e8_attachment_test.eml",
+    "evidence_hash_sha256": "68176bd6032e65e61e4b05f4708aa151c20c65cd21728484767eb1738b28317a",
+    "analysis_timestamp_utc": "2026-09-05T03:15:02.162545+00:00",
+    "evidence_size_bytes": 679,
+    "hash_algorithm": "SHA-256"
+  },
+  "message_metadata": {
+    "subject": "Invoice Attachment Test",
+    "message_id": "<attachment-test@vendor-example.com>",
+    "date": "Fri, 04 Sep 2026 14:00:00 +0000",
+    "x_originating_ip": "",
+    "x_mailer": "",
+    "user_agent": ""
+  },
+  "sender_identity": {
+    "from": {
+      "raw": "Vendor Billing <billing@vendor-example.com>",
+      "display_name": "Vendor Billing",
+      "email_address": "billing@vendor-example.com",
+      "domain": "vendor-example.com"
+    },
+    "reply_to": {
+      "raw": "payments@vendor-example.com",
+      "display_name": "",
+      "email_address": "payments@vendor-example.com",
+      "domain": "vendor-example.com"
+    },
+    "return_path": {
+      "raw": "",
+      "display_name": "",
+      "email_address": "",
+      "domain": ""
+    },
+    "sender": {
+      "raw": "",
+      "display_name": "",
+      "email_address": "",
+      "domain": ""
+    },
+    "analysis": {
+      "from_domain": "vendor-example.com",
+      "reply_to_domain": "vendor-example.com",
+      "return_path_domain": "",
+      "sender_domain": "",
+      "risk_flags": [],
+      "findings": []
+    }
+  },
+  "email_authentication": {
+    "visible_from_domain": "vendor-example.com",
+    "reported_results": {
+      "source": "receiver_reported",
+      "headers_found": 0,
+      "spf": "none",
+      "dkim": "none",
+      "dmarc": "none",
+      "smtp_mailfrom_domain": "",
+      "header_from_domain": "",
+      "header_d_domain": "",
+      "raw_headers": []
+    },
+    "independent_spf": {
+      "source": "independent_pyspf",
+      "available": true,
+      "status": "missing_connecting_ip",
+      "explanation": "No earliest visible public relay IP was available.",
+      "connecting_ip": "",
+      "envelope_sender": "",
+      "helo_host": "",
+      "envelope_sender_domain": ""
+    },
+    "independent_dkim": {
+      "source": "independent_dkimpy",
+      "available": true,
+      "status": "none",
+      "signature_present": false,
+      "signature_details": [],
+      "error": ""
+    },
+    "dmarc_forensic_assessment": {
+      "source": "forensic_alignment_assessment",
+      "visible_from_domain": "vendor-example.com",
+      "dmarc_dns_policy": "none",
+      "spf_alignment_mode": "relaxed",
+      "dkim_alignment_mode": "relaxed",
+      "spf": {
+        "status": "missing_connecting_ip",
+        "authenticated_domain": "",
+        "aligned": false
+      },
+      "dkim": {
+        "status": "none",
+        "signing_domains": [],
+        "aligned_domains": [],
+        "aligned": false
+      },
+      "assessment": "likely_fail",
+      "limitation": "This is a forensic alignment assessment. A receiving mail system remains the authoritative system for final DMARC enforcement decisions."
+    }
+  },
+  "relay_analysis": {
+    "received_hops": [],
+    "probable_source": {
+      "earliest_visible_public_hop": null,
+      "confidence": "low",
+      "limitation": "Visible email relay infrastructure is not proof of a person's identity or exact physical location."
+    }
+  },
+  "indicators": {
+    "domains": [
+      "vendor-example.com"
+    ],
+    "urls": [],
+    "attachments": [
+      {
+        "filename": "invoice.pdf.exe",
+        "mime_type": "application/octet-stream",
+        "size_bytes": 50,
+        "sha256": "5809ab69041fbbafe4f7db17bfdb4c3b6cf2d3f323dcb655deadd322ee58ee20",
+        "risk_flags": [
+          "dangerous_extension",
+          "double_extension"
+        ]
+      }
+    ],
+    "ips": []
+  },
+  "forensic_findings": [
+    {
+      "severity": "high",
+      "category": "dmarc_alignment",
+      "message": "Forensic DMARC alignment assessment indicates likely failure."
+    },
+    {
+      "severity": "high",
+      "category": "attachment",
+      "message": "Attachment 'invoice.pdf.exe' flagged: dangerous_extension."
+    },
+    {
+      "severity": "high",
+      "category": "attachment",
+      "message": "Attachment 'invoice.pdf.exe' flagged: double_extension."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'vendor-example.com' flagged: dmarc_monitoring_only."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'vendor-example.com' flagged: dmarc_record_missing."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'vendor-example.com' flagged: domain_does_not_exist."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'vendor-example.com' flagged: no_mx_record."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'vendor-example.com' flagged: spf_record_missing."
+    }
+  ],
+  "forensic_limitations": [
+    "IP geolocation and ASN data describe approximate network infrastructure context, not a confirmed human sender or attacker location.",
+    "Authentication-Results headers are receiver-reported evidence and may differ from independent checks.",
+    "A single indicator is not enough to prove malicious intent; findings should be evaluated together."
+  ]
+}

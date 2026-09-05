@@ -1,0 +1,443 @@
+{
+  "case_id": "CASE-20260905-055652-851F4BF6",
+  "evidence": {
+    "case_id": "CASE-20260905-055652-851F4BF6",
+    "source_name": "c335e0d9-402f-4785-87f6-fb60237481f6_hidden_link_test.eml",
+    "evidence_hash_sha256": "a5a25633007b9dc09c0bc131084f9bf6605b6bf8d9717e68cca08cb223279c64",
+    "analysis_timestamp_utc": "2026-09-05T05:56:52.431600+00:00",
+    "evidence_size_bytes": 1166,
+    "hash_algorithm": "SHA-256"
+  },
+  "message_metadata": {
+    "subject": "Urgent Account Verification Required",
+    "message_id": "<hidden-link-test@example.com>",
+    "date": "Fri, 04 Sep 2026 15:00:00 +0000",
+    "x_originating_ip": "",
+    "x_mailer": "",
+    "user_agent": ""
+  },
+  "sender_identity": {
+    "from": {
+      "raw": "Microsoft Security <security@micros0ft-alert.example>",
+      "display_name": "Microsoft Security",
+      "email_address": "security@micros0ft-alert.example",
+      "domain": "micros0ft-alert.example"
+    },
+    "reply_to": {
+      "raw": "verify@account-check.example",
+      "display_name": "",
+      "email_address": "verify@account-check.example",
+      "domain": "account-check.example"
+    },
+    "return_path": {
+      "raw": "",
+      "display_name": "",
+      "email_address": "",
+      "domain": ""
+    },
+    "sender": {
+      "raw": "",
+      "display_name": "",
+      "email_address": "",
+      "domain": ""
+    },
+    "analysis": {
+      "from_domain": "micros0ft-alert.example",
+      "reply_to_domain": "account-check.example",
+      "return_path_domain": "",
+      "sender_domain": "",
+      "risk_flags": [
+        "brand_lookalike_domain",
+        "display_name_impersonation",
+        "from_reply_to_domain_mismatch"
+      ],
+      "findings": [
+        {
+          "type": "identity_mismatch",
+          "reason": "Visible From domain differs from Reply-To domain",
+          "from_domain": "micros0ft-alert.example",
+          "reply_to_domain": "account-check.example"
+        },
+        {
+          "type": "suspicious_domain_structure",
+          "field": "from",
+          "domain": "micros0ft-alert.example",
+          "matched_words": [
+            "alert"
+          ],
+          "reason": "Suspicious domain keywords found"
+        },
+        {
+          "type": "brand_lookalike",
+          "field": "from",
+          "domain": "micros0ft-alert.example",
+          "brand": "microsoft",
+          "suspicious_label": "micros0ft-alert",
+          "matched_protected_domains": [
+            "microsoft.com",
+            "office.com",
+            "outlook.com"
+          ],
+          "similarity_score": 78.26,
+          "reason": "lookalike_domain_label"
+        },
+        {
+          "type": "suspicious_domain_structure",
+          "field": "reply_to",
+          "domain": "account-check.example",
+          "matched_words": [
+            "account"
+          ],
+          "reason": "Suspicious domain keywords found"
+        },
+        {
+          "type": "display_name_impersonation",
+          "brand": "microsoft",
+          "display_name": "Microsoft Security",
+          "sender_domain": "micros0ft-alert.example",
+          "approved_domains": [
+            "microsoft.com",
+            "office.com",
+            "outlook.com"
+          ],
+          "similarity_score": 100.0,
+          "reason": "display_name_brand_impersonation"
+        }
+      ]
+    }
+  },
+  "email_authentication": {
+    "visible_from_domain": "micros0ft-alert.example",
+    "reported_results": {
+      "source": "receiver_reported",
+      "headers_found": 0,
+      "spf": "none",
+      "dkim": "none",
+      "dmarc": "none",
+      "smtp_mailfrom_domain": "",
+      "header_from_domain": "",
+      "header_d_domain": "",
+      "raw_headers": []
+    },
+    "independent_spf": {
+      "source": "independent_pyspf",
+      "available": true,
+      "status": "missing_connecting_ip",
+      "explanation": "No earliest visible public relay IP was available.",
+      "connecting_ip": "",
+      "envelope_sender": "",
+      "helo_host": "",
+      "envelope_sender_domain": ""
+    },
+    "independent_dkim": {
+      "source": "independent_dkimpy",
+      "available": true,
+      "status": "none",
+      "signature_present": false,
+      "signature_details": [],
+      "error": ""
+    },
+    "dmarc_forensic_assessment": {
+      "source": "forensic_alignment_assessment",
+      "visible_from_domain": "micros0ft-alert.example",
+      "dmarc_dns_policy": "none",
+      "spf_alignment_mode": "relaxed",
+      "dkim_alignment_mode": "relaxed",
+      "spf": {
+        "status": "missing_connecting_ip",
+        "authenticated_domain": "",
+        "aligned": false
+      },
+      "dkim": {
+        "status": "none",
+        "signing_domains": [],
+        "aligned_domains": [],
+        "aligned": false
+      },
+      "assessment": "likely_fail",
+      "limitation": "This is a forensic alignment assessment. A receiving mail system remains the authoritative system for final DMARC enforcement decisions."
+    }
+  },
+  "relay_analysis": {
+    "received_hops": [],
+    "probable_source": {
+      "earliest_visible_public_hop": null,
+      "confidence": "low",
+      "limitation": "Visible email relay infrastructure is not proof of a person's identity or exact physical location."
+    }
+  },
+  "indicators": {
+    "domains": [
+      "account-check.example",
+      "bit.ly",
+      "micros0ft-alert.example",
+      "microsoft.com",
+      "secure-login-check.example",
+      "xn--paypa1-security.example"
+    ],
+    "urls": [
+      {
+        "url": "https://www.microsoft.com",
+        "visible_text": "https://www.microsoft.com",
+        "hostname": "www.microsoft.com",
+        "registered_domain": "microsoft.com",
+        "source": "plain_text",
+        "risk_flags": [
+          "url_reputation_authentication_required"
+        ],
+        "reputation": {
+          "indicator_type": "url",
+          "indicator": "https://www.microsoft.com",
+          "source": "urlhaus",
+          "status": "authentication_required",
+          "threat": "",
+          "tags": [],
+          "date_added": "",
+          "url_status": "",
+          "risk_flags": [
+            "url_reputation_authentication_required"
+          ],
+          "error": "401 Client Error: Unauthorized for url: https://urlhaus-api.abuse.ch/v1/url/",
+          "http_status_code": 401
+        }
+      },
+      {
+        "url": "http://secure-login-check.example/verify?account=user",
+        "visible_text": "http://secure-login-check.example/verify?account=user",
+        "hostname": "secure-login-check.example",
+        "registered_domain": "secure-login-check.example",
+        "source": "plain_text_and_html",
+        "risk_flags": [
+          "url_reputation_authentication_required",
+          "visible_link_destination_mismatch"
+        ],
+        "reputation": {
+          "indicator_type": "url",
+          "indicator": "http://secure-login-check.example/verify?account=user",
+          "source": "urlhaus",
+          "status": "authentication_required",
+          "threat": "",
+          "tags": [],
+          "date_added": "",
+          "url_status": "",
+          "risk_flags": [
+            "url_reputation_authentication_required"
+          ],
+          "error": "401 Client Error: Unauthorized for url: https://urlhaus-api.abuse.ch/v1/url/",
+          "http_status_code": 401
+        }
+      },
+      {
+        "url": "https://bit.ly/demo-security-link",
+        "visible_text": "Verify your account",
+        "hostname": "bit.ly",
+        "registered_domain": "bit.ly",
+        "source": "html_anchor",
+        "risk_flags": [
+          "shortened_url",
+          "url_reputation_authentication_required"
+        ],
+        "reputation": {
+          "indicator_type": "url",
+          "indicator": "https://bit.ly/demo-security-link",
+          "source": "urlhaus",
+          "status": "authentication_required",
+          "threat": "",
+          "tags": [],
+          "date_added": "",
+          "url_status": "",
+          "risk_flags": [
+            "url_reputation_authentication_required"
+          ],
+          "error": "401 Client Error: Unauthorized for url: https://urlhaus-api.abuse.ch/v1/url/",
+          "http_status_code": 401
+        }
+      },
+      {
+        "url": "http://xn--paypa1-security.example/login",
+        "visible_text": "Secure payment portal",
+        "hostname": "xn--paypa1-security.example",
+        "registered_domain": "xn--paypa1-security.example",
+        "source": "html_anchor",
+        "risk_flags": [
+          "punycode_domain",
+          "url_reputation_authentication_required"
+        ],
+        "reputation": {
+          "indicator_type": "url",
+          "indicator": "http://xn--paypa1-security.example/login",
+          "source": "urlhaus",
+          "status": "authentication_required",
+          "threat": "",
+          "tags": [],
+          "date_added": "",
+          "url_status": "",
+          "risk_flags": [
+            "url_reputation_authentication_required"
+          ],
+          "error": "401 Client Error: Unauthorized for url: https://urlhaus-api.abuse.ch/v1/url/",
+          "http_status_code": 401
+        }
+      }
+    ],
+    "attachments": [],
+    "ips": []
+  },
+  "forensic_findings": [
+    {
+      "severity": "medium",
+      "category": "identity_mismatch",
+      "message": "Visible From domain differs from Reply-To domain"
+    },
+    {
+      "severity": "medium",
+      "category": "suspicious_domain_structure",
+      "message": "Suspicious domain keywords found"
+    },
+    {
+      "severity": "medium",
+      "category": "brand_lookalike",
+      "message": "lookalike_domain_label"
+    },
+    {
+      "severity": "medium",
+      "category": "suspicious_domain_structure",
+      "message": "Suspicious domain keywords found"
+    },
+    {
+      "severity": "medium",
+      "category": "display_name_impersonation",
+      "message": "display_name_brand_impersonation"
+    },
+    {
+      "severity": "high",
+      "category": "dmarc_alignment",
+      "message": "Forensic DMARC alignment assessment indicates likely failure."
+    },
+    {
+      "severity": "high",
+      "category": "url_deception",
+      "message": "Visible hyperlink text and actual destination domain do not match."
+    },
+    {
+      "severity": "medium",
+      "category": "url_deception",
+      "message": "Shortened URL detected: https://bit.ly/demo-security-link."
+    },
+    {
+      "severity": "medium",
+      "category": "url_deception",
+      "message": "Punycode/IDN URL domain detected: xn--paypa1-security.example."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'account-check.example' flagged: dmarc_monitoring_only."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'account-check.example' flagged: dmarc_record_missing."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'account-check.example' flagged: domain_does_not_exist."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'account-check.example' flagged: no_mx_record."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'account-check.example' flagged: spf_record_missing."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'bit.ly' flagged: dmarc_monitoring_only."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'micros0ft-alert.example' flagged: dmarc_monitoring_only."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'micros0ft-alert.example' flagged: dmarc_record_missing."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'micros0ft-alert.example' flagged: domain_does_not_exist."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'micros0ft-alert.example' flagged: no_mx_record."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'micros0ft-alert.example' flagged: spf_record_missing."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'microsoft.com' flagged: spf_record_missing."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'secure-login-check.example' flagged: dmarc_monitoring_only."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'secure-login-check.example' flagged: dmarc_record_missing."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'secure-login-check.example' flagged: no_mx_record."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'secure-login-check.example' flagged: spf_record_missing."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'xn--paypa1-security.example' flagged: dmarc_monitoring_only."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'xn--paypa1-security.example' flagged: dmarc_record_missing."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'xn--paypa1-security.example' flagged: domain_does_not_exist."
+    },
+    {
+      "severity": "medium",
+      "category": "domain_dns",
+      "message": "Domain 'xn--paypa1-security.example' flagged: no_mx_record."
+    },
+    {
+      "severity": "low",
+      "category": "domain_dns",
+      "message": "Domain 'xn--paypa1-security.example' flagged: spf_record_missing."
+    }
+  ],
+  "forensic_limitations": [
+    "IP geolocation and ASN data describe approximate network infrastructure context, not a confirmed human sender or attacker location.",
+    "Authentication-Results headers are receiver-reported evidence and may differ from independent checks.",
+    "A single indicator is not enough to prove malicious intent; findings should be evaluated together."
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "ip_reputation": {
+    "8.8.8.8": {
+      "indicator_type": "ip",
+      "indicator": "8.8.8.8",
+      "source": "offline_fallback",
+      "status": "ok",
+      "abuse_confidence_score": 0,
+      "total_reports": 0,
+      "last_reported_at": "",
+      "usage_type": "Public DNS",
+      "isp": "Google LLC",
+      "country_code": "",
+      "risk_flags": [],
+      "error": ""
+    }
+  },
+  "url_reputation": {
+    "http://malicious-demo.example/login": {
+      "indicator_type": "url",
+      "indicator": "http://malicious-demo.example/login",
+      "source": "offline_fallback",
+      "status": "ok",
+      "threat": "phishing",
+      "tags": [
+        "demo",
+        "credential_theft"
+      ],
+      "date_added": "",
+      "url_status": "",
+      "risk_flags": [
+        "known_malicious_url",
+        "phishing_indicator"
+      ],
+      "error": "",
+      "query_status": "offline_demo_match"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+From: "Vendor Billing" <billing@vendor-example.com>
+To: analyst@example.com
+Reply-To: payments@vendor-example.com
+Subject: Invoice Attachment Test
+Date: Fri, 04 Sep 2026 14:00:00 +0000
+Message-ID: <attachment-test@vendor-example.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY123"
+
+--BOUNDARY123
+Content-Type: text/plain; charset="UTF-8"
+
+Please review the attached invoice.
+
+--BOUNDARY123
+Content-Type: application/octet-stream; name="invoice.pdf.exe"
+Content-Disposition: attachment; filename="invoice.pdf.exe"
+Content-Transfer-Encoding: base64
+
+VGhpcyBpcyBhIHNhZmUgdGVzdCBmaWxlLiBJdCBpcyBub3QgYW4gZXhlY3V0YWJsZS4=
+
+--BOUNDARY123--

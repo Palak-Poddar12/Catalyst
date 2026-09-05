@@ -1,0 +1,18 @@
+From: "Company HR" <hr@company.com>
+To: "Employee" <employee@company.com>
+Subject: Team Meeting Tomorrow
+Date: Fri, 30 Aug 2025 09:00:00 +0000
+Authentication-Results: mx.company.com;
+    spf=pass smtp.mailfrom=company.com;
+    dkim=pass header.d=company.com;
+    dmarc=pass (p=reject) header.from=company.com
+Received: from mail.company.com (mail.company.com [10.0.0.5])
+    by mx.company.com (Postfix) with ESMTP
+    for <employee@company.com>; Fri, 30 Aug 2025 09:00:00 +0000 (UTC)
+
+Hi Team,
+
+Meeting tomorrow at 10 AM in Conference Room A.
+
+Best,
+HR Team

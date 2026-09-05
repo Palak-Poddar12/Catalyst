@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+
+# Gmail OAuth secrets
+backend/gmail/credentials.json
+backend/gmail/token.json
+
+# Node
+node_modules/
+dist/
+build/
+
+# Runtime
+*.log
+diagnosis_log.jsonl
+
+# OS
+.DS_Store
+Thumbs.db

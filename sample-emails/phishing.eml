@@ -1,0 +1,33 @@
+From: "Secure Bank" <support@secure-bank-verify.com>
+To: "Customer" <customer@example.com>
+Reply-To: support@fake-bank-login.com
+Return-Path: <bounce@secure-bank-verify.com>
+Subject: Urgent: Verify Your Account Now
+Date: Fri, 30 Aug 2025 10:12:34 +0000
+Message-ID: <abc123@secure-bank-verify.com>
+Authentication-Results: mx.example.com;
+    spf=fail (sender IP is 203.0.113.45) smtp.mailfrom=secure-bank-verify.com;
+    dkim=none;
+    dmarc=fail (p=reject) header.from=secure-bank-verify.com
+Received: from mail.fake-bank-login.com (unknown [203.0.113.45])
+    by mx.example.com (Postfix) with ESMTP id ABC123
+    for <customer@example.com>; Fri, 30 Aug 2025 10:12:34 +0000 (UTC)
+Received: from suspicious-relay.net (suspicious-relay.net [198.51.100.22])
+    by mail.fake-bank-login.com (Postfix) with SMTP
+    for <customer@example.com>; Fri, 30 Aug 2025 10:12:30 +0000 (UTC)
+Received: from localhost (localhost [127.0.0.1])
+    by suspicious-relay.net (Postfix) with ESMTP
+    for <customer@example.com>; Fri, 30 Aug 2025 10:12:25 +0000 (UTC)
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Dear Customer,
+
+Your account has been temporarily suspended due to suspicious activity.
+
+Click here to verify your account immediately: http://fake-bank-login.com/verify
+
+If you do not verify within 24 hours, your account will be permanently closed.
+
+Best regards,
+Secure Bank Security Team
