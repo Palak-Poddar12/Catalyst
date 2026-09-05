@@ -128,6 +128,7 @@ def build_forensic_result(email: dict) -> dict:
     # These fields are intentionally generic. Adapt them to the exact ML contract.
     ml_features = {
         **forensic_flags,
+        "text": text,
         "url_count": len(urls),
         "ip_count": len(ips),
         "attachment_count": len(email.get("attachments", [])),

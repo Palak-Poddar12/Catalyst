@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     database_url: str
     ml_service_url: str = ""
+    ml_model_path: str = ""
+    ml_classifier_path: str = ""
     ml_service_timeout: float = 30.0
     cors_origins: str = "http://localhost:5173"
     max_upload_mb: int = 10

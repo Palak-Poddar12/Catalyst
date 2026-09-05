@@ -77,4 +77,5 @@ def process_email(filename: str, content: bytes, case_id: int, db):
         "risk_score": analysis.final_risk_score,
         "risk_level": analysis.risk_level,
         "ml_status": analysis.ml_status,
+        "score_breakdown": ml.get("score_breakdown", {}),
     }
