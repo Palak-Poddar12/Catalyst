@@ -1,0 +1,305 @@
+# .github/workflows/devsecops-pipeline.yml
+#
+# DevSecOps pipeline for the SIH26106 FastAPI backend.
+#
+# ASSUMPTIONS — adjust these to match your actual repo before relying on this:
+#   1. Python 3.11, dependencies pinned in `requirements.txt` at repo root
+#      (pyproject.toml is also handled below).
+#   2. Test DB defaults to SQLite for CI (matches the `Base.metadata.create_all`
+#      MVP bootstrap in main.py). If you're on Postgres/MySQL in prod, swap in
+#      a `services:` container in the email-engine-tests job.
+#   3. Container scan only runs if a `Dockerfile` exists at repo root — it's
+#      skipped (not failed) otherwise.
+#   4. If you keep a `.env.example`, it's copied to `.env` for tests/build so
+#      `app.core.config.settings` has values to read. Add real required env
+#      vars as repo Secrets and reference them under `env:` where needed.
+#   5. Action versions are pinned to the latest major tag known at authoring
+#      time — bump them periodically (Dependabot on `.github/workflows` helps).
+
+name: DevSecOps Security Pipeline
+
+on:
+  push:
+    branches: [main, develop, master]
+  pull_request:
+    branches: [main, develop, master]
+  schedule:
+    - cron: "0 3 * * 1"   # weekly Monday 03:00 UTC — catches new CVEs even with no code changes
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devsecops-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+
+  # ---------------- Phase 1: Setup ----------------
+  setup:
+    name: Setup & Manifest Check
+    runs-on: ubuntu-latest
+    outputs:
+      has_dockerfile: ${{ steps.check.outputs.has_dockerfile }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check
+        name: Detect optional infra files
+        run: |
+          if [ -f "Dockerfile" ]; then
+            echo "has_dockerfile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_dockerfile=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Validate a dependency manifest exists
+        run: |
+          if [ ! -f "requirements.txt" ] && [ ! -f "pyproject.toml" ]; then
+            echo "::error::No requirements.txt or pyproject.toml found at repo root."
+            exit 1
+          fi
+
+  # ---------------- Phase 2: SAST ----------------
+  sast:
+    name: SAST (Bandit + Semgrep)
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install SAST tools
+        run: pip install bandit semgrep
+
+      - name: Bandit — SARIF report (for Security tab)
+        run: bandit -r app -f sarif -o bandit-results.sarif -ll --exit-zero
+
+      - name: Semgrep — OWASP Top 10 / Python / FastAPI rulesets (advisory)
+        run: |
+          semgrep scan --config p/owasp-top-ten --config p/python --config p/fastapi \
+            --sarif --output semgrep-results.sarif
+        continue-on-error: true
+
+      - name: Upload Bandit SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+
+      - name: Upload Semgrep SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep
+
+      - name: Bandit — enforce gate (fails build on real findings)
+        run: bandit -r app -ll -iii
+
+  # ---------------- Phase 3a: Dependency scanning ----------------
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install project dependencies
+        run: |
+          [ -f requirements.txt ] && pip install -r requirements.txt
+          [ -f pyproject.toml ] && pip install .
+          pip install pip-audit
+
+      - name: Run pip-audit (fails on known CVEs)
+        run: pip-audit --strict --desc -f json -o pip-audit-results.json
+
+      - name: Upload dependency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan-report
+          path: pip-audit-results.json
+
+  # ---------------- Phase 3b: Secret scanning ----------------
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so Gitleaks can scan past commits too
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------- Phase 4: Email engine security tests ----------------
+  email-engine-tests:
+    name: Email Engine Security Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "sqlite:///./test.db"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Prepare environment file (no-op if absent)
+        run: cp .env.example .env 2>/dev/null || true
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run test suite with coverage
+        run: pytest -v --cov=app --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  # ---------------- Phase 5: Container scan ----------------
+  container-scan:
+    name: Container Image Scan (Trivy)
+    needs: setup
+    if: needs.setup.outputs.has_dockerfile == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare environment file (no-op if absent)
+        run: cp .env.example .env 2>/dev/null || true
+
+      - name: Build image
+        run: docker build -t sih26106-backend:${{ github.sha }} .
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: sih26106-backend:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-container
+
+  # ---------------- Phase 6: IaC scan ----------------
+  iac-scan:
+    name: IaC Scan (Checkov)
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: true
+      - name: Upload Checkov SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov
+
+  # ---------------- Phase 7: License compliance ----------------
+  license-compliance:
+    name: License Compliance Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pip-licenses
+
+      - name: Check for disallowed licenses
+        run: |
+          pip-licenses --format=json --output-file=licenses.json
+          python - <<'PY'
+          import json, sys
+          DENYLIST = {"GPL-3.0", "AGPL-3.0", "GPL-2.0"}
+          data = json.load(open("licenses.json"))
+          violations = [d for d in data if d.get("License") in DENYLIST]
+          if violations:
+              print("::error::Disallowed licenses found:", violations)
+              sys.exit(1)
+          print(f"Checked {len(data)} packages — no denylisted licenses found.")
+          PY
+
+      - name: Upload license report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: licenses.json
+
+  # ---------------- Phase 8: SBOM generation ----------------
+  sbom:
+    name: Generate SBOM (CycloneDX)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.cyclonedx.json
+
+  # ---------------- Phase 9 & 10: Reporting + status gate ----------------
