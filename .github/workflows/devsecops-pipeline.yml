@@ -1,0 +1,329 @@
+# FIX 1: full-history secret scan.
+# FIX 2: empty ML service URL is supported by CI.
+# FIX 3: Docker build excludes model and data artifacts.
+# FIX 4: CI writes required environment defaults.
+# FIX 5: skipped container scans do not block the gate.
+# FIX 6: Semgrep always produces an uploadable SARIF file.
+# FIX 7: all PyTorch checkpoints are excluded from Docker context.
+# FIX 8: GitHub Actions are pinned to immutable commit SHAs.
+
+name: DevSecOps Security Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devsecops-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  setup:
+    name: Setup & Manifest Check
+    runs-on: ubuntu-latest
+    outputs:
+      has_dockerfile: ${{ steps.check.outputs.has_dockerfile }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - id: check
+        name: Detect optional infra files
+        run: |
+          if [ -f "Dockerfile" ]; then
+            echo "has_dockerfile=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_dockerfile=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Validate dependency manifest
+        run: test -f requirements.txt
+
+  sast:
+    name: SAST (Bandit + Semgrep)
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install SAST tools
+        run: python -m pip install bandit semgrep
+      - name: Bandit SARIF report
+        run: bandit -r app -f sarif -o bandit-results.sarif -ll --exit-zero
+      - name: Semgrep OWASP, Python, and FastAPI rules
+        run: |
+          touch semgrep-results.sarif
+          semgrep scan --config p/owasp-top-ten --config p/python --config p/fastapi \
+            --sarif --output semgrep-results.sarif || true
+        continue-on-error: true
+      - name: Upload Bandit SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@b56ba49b26d50abe5f4f1afbb2b7fe3a42ab77f2 # v3.28.0
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+      - name: Upload Semgrep SARIF
+        if: always() && hashFiles('semgrep-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@b56ba49b26d50abe5f4f1afbb2b7fe3a42ab77f2 # v3.28.0
+        with:
+          sarif_file: semgrep-results.sarif
+          category: semgrep
+      - name: Enforce Bandit gate
+        run: bandit -r app -ll -iii
+
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install project dependencies and scanner
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pip-audit
+      - name: Run pip-audit
+        run: pip-audit --strict --desc -f json -o pip-audit-results.json
+      - name: Upload dependency report
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: dependency-scan-report
+          path: pip-audit-results.json
+
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Pre-scan warning check
+        run: |
+          if git log --all -p | grep -qE "(ngrok|huggingface|ghp_|sk-)[A-Za-z0-9_-]{10,}"; then
+            echo "::warning::Possible token found in git history. Run Gitleaks locally to confirm and revoke it."
+          fi
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c8 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  backend-tests:
+    name: Backend Security Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: sqlite:///./test.db
+      ML_SERVICE_URL: ""
+      ML_SERVICE_TIMEOUT: "5.0"
+      CORS_ORIGINS: "http://localhost:5173"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Prepare environment file
+        run: |
+          cp .env.example .env 2>/dev/null || true
+          grep -q '^DATABASE_URL=' .env 2>/dev/null || echo "DATABASE_URL=sqlite:///./test.db" >> .env
+          grep -q '^ML_SERVICE_URL=' .env 2>/dev/null || echo "ML_SERVICE_URL=" >> .env
+          grep -q '^ML_SERVICE_TIMEOUT=' .env 2>/dev/null || echo "ML_SERVICE_TIMEOUT=5.0" >> .env
+          grep -q '^CORS_ORIGINS=' .env 2>/dev/null || echo "CORS_ORIGINS=http://localhost:5173" >> .env
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest pytest-cov
+      - name: Run test suite with coverage
+        run: pytest -v --cov=app --cov-report=xml --cov-report=term-missing
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  container-scan:
+    name: Container Image Scan (Trivy)
+    needs: setup
+    if: needs.setup.outputs.has_dockerfile == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Prepare environment file
+        run: |
+          cp .env.example .env 2>/dev/null || true
+          grep -q '^DATABASE_URL=' .env 2>/dev/null || echo "DATABASE_URL=sqlite:///./test.db" >> .env
+          grep -q '^ML_SERVICE_URL=' .env 2>/dev/null || echo "ML_SERVICE_URL=" >> .env
+          grep -q '^ML_SERVICE_TIMEOUT=' .env 2>/dev/null || echo "ML_SERVICE_TIMEOUT=5.0" >> .env
+      - name: Enforce Docker build exclusions
+        run: |
+          touch .dockerignore
+          grep -q '^\*\*/best_model\.pt$' .dockerignore || echo '**/best_model.pt' >> .dockerignore
+          grep -q '^\*\.pt$' .dockerignore || echo '*.pt' >> .dockerignore
+          grep -q '^data/$' .dockerignore || echo 'data/' >> .dockerignore
+          grep -q '^\*\.csv$' .dockerignore || echo '*.csv' >> .dockerignore
+          grep -q '^\.env$' .dockerignore || echo '.env' >> .dockerignore
+          grep -q '__pycache__' .dockerignore || echo '**/__pycache__' >> .dockerignore
+      - name: Build image
+        run: docker build -t sih26106-backend:${{ github.sha }} .
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.28.0
+        with:
+          image-ref: sih26106-backend:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@b56ba49b26d50abe5f4f1afbb2b7fe3a42ab77f2 # v3.28.0
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-container
+
+  iac-scan:
+    name: IaC Scan (Checkov)
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@2c09b9d3cfe9cb7a90a09b9be7002b3e7e77e6d7 # v12.2848.0
+        with:
+          directory: .
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: true
+      - name: Upload Checkov SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@b56ba49b26d50abe5f4f1afbb2b7fe3a42ab77f2 # v3.28.0
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov
+
+  license-compliance:
+    name: License Compliance Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install dependencies and license scanner
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pip-licenses
+      - name: Check for disallowed licenses
+        run: |
+          pip-licenses --format=json --output-file=licenses.json
+          python - <<'PY'
+          import json
+          import sys
+
+          denylist = {"GPL-3.0", "AGPL-3.0", "GPL-2.0"}
+          with open("licenses.json", encoding="utf-8") as report:
+              data = json.load(report)
+          violations = [item for item in data if item.get("License") in denylist]
+          if violations:
+              print("::error::Disallowed licenses found:", violations)
+              sys.exit(1)
+          print(f"Checked {len(data)} packages - no denylisted licenses found.")
+          PY
+      - name: Upload license report
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: license-report
+          path: licenses.json
+
+  sbom:
+    name: Generate SBOM (CycloneDX)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: sbom.cyclonedx.json
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: sbom
+          path: sbom.cyclonedx.json
+
+  security-gate:
+    name: Security Report & Gate
+    needs:
+      - sast
+      - dependency-scan
+      - secret-scan
+      - backend-tests
+      - container-scan
+      - iac-scan
+      - license-compliance
+      - sbom
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write summary
+        run: |
+          {
+            echo "## Security Pipeline Summary"
+            echo ""
+            echo "| Phase | Result |"
+            echo "|---|---|"
+            echo "| SAST | ${{ needs.sast.result }} |"
+            echo "| Dependency Scan | ${{ needs.dependency-scan.result }} |"
+            echo "| Secret Scan | ${{ needs.secret-scan.result }} |"
+            echo "| Backend Tests | ${{ needs.backend-tests.result }} |"
+            echo "| Container Scan | ${{ needs.container-scan.result }} (skipped if no Dockerfile) |"
+            echo "| IaC Scan | ${{ needs.iac-scan.result }} |"
+            echo "| License Compliance | ${{ needs.license-compliance.result }} |"
+            echo "| SBOM Generation | ${{ needs.sbom.result }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Enforce gate on required phases
+        run: |
+          required="${{ needs.sast.result }} ${{ needs.dependency-scan.result }} ${{ needs.secret-scan.result }} ${{ needs.backend-tests.result }} ${{ needs.iac-scan.result }} ${{ needs.license-compliance.result }} ${{ needs.sbom.result }}"
+          if echo "$required" | grep -qE "failure|cancelled"; then
+            echo "::error::One or more required security phases failed."
+            exit 1
+          fi
+          if [ "${{ needs.container-scan.result }}" = "failure" ]; then
+            echo "::error::Container scan failed."
+            exit 1
+          fi
+          echo "All required security gates passed."

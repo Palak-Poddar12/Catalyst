@@ -1,4 +1,10 @@
 .env
+test.db
+test.db-*
+test_smoke.db
+test_smoke.db-*
+.coverage
+.pytest_cache/
 venv/
 __pycache__/
 *.pyc

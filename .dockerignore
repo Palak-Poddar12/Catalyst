@@ -1,0 +1,9 @@
+*.pt
+models/*.pt
+data/
+*.csv
+.env
+.env.*
+**/__pycache__
+.pytest_cache
+.git
