@@ -18,11 +18,9 @@ import ThreatAlert from "./components/ThreatAlert";
 
 import sampleForensicData from "./data/sampleForensicData";
 
-const API_URL =
-  "http://127.0.0.1:8000/api/v1/emails/analyze-jobs";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/emails/analyze-jobs`;
 
-const CASES_API_URL =
-  "http://127.0.0.1:8000/api/v1/cases";
+const CASES_API_URL = `${import.meta.env.VITE_API_URL}/api/v1/cases`;
 
 function normalizeForensicData(rawData) {
   const safeData = rawData || {};
