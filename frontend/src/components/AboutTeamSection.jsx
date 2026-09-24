@@ -1,4 +1,14 @@
-import { ArrowRight, Github, Mail, ShieldCheck, Users, Target, Code2, Database, Network, Brain } from "lucide-react";
+import {
+  ArrowRight,
+  Mail,
+  ShieldCheck,
+  Users,
+  Target,
+  Code2,
+  Database,
+  Network,
+  Brain
+} from "lucide-react";
 import "./AboutTeamSection.css";
 
 const team = [
