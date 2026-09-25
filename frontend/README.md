@@ -1,45 +1,33 @@
 # SATGUARD Frontend
 
-Production-oriented React/Vite frontend for the SATGUARD email threat intelligence and digital-forensics platform.
+React/Vite frontend for SATGUARD — Email Threat Intelligence & Forensics.
 
-## Run
+## Run locally
 
 ```bash
 npm install
-cp .env.example .env
 npm run dev
 ```
 
-Set `VITE_API_BASE_URL` to the existing FastAPI base URL. The frontend does not hardcode a Render backend URL.
+## Render
 
-## Build
+- Static Site
+- Root Directory: `frontend` if this repository contains the app under `frontend/`; otherwise the app directory itself.
+- Build Command: `npm install && npm run build`
+- Publish Directory: `dist`
+- Environment variable: `VITE_API_BASE_URL=https://YOUR-BACKEND.onrender.com/api/v1`
 
-```bash
-npm run build
-npm run preview
-```
+Add an SPA rewrite from `/*` to `/index.html` with action `Rewrite`.
 
-## Backend contract
+## Frontend-only prototype authentication
 
-API calls are centralized under `src/api/` and target the existing route families:
+Authentication is intentionally independent of the FastAPI backend. The four prototype accounts are defined in `src/utils/auth.js` and determine the frontend role and permissions:
 
-- `/cases`
-- `/emails`
-- `/analysis`
-- `/reports`
-- `/intel`
-- `/gmail`
-- `/advanced`
-- `/auth`
-- `/admin`
+- ADMIN — admin@satguard.local / admin123
+- ANALYST — analyst@satguard.local / analyst123
+- INVESTIGATOR — investigator@satguard.local / invest123
+- VIEWER — viewer@satguard.local / viewer123
 
-The UI intentionally does not fabricate threat-intelligence or forensic evidence. Empty/loading/error states are shown when the backend does not return data.
+There is no role selector. The role is derived from the matched account. `Remember me` stores the selected prototype credentials in localStorage because this is a demo-only authentication mechanism. Do not use these credentials or this authentication implementation for a real production security system.
 
-## Demo accounts
-
-- ADMIN — `admin@satguard.local` / `admin123`
-- ANALYST — `analyst@satguard.local` / `analyst123`
-- INVESTIGATOR — `investigator@satguard.local` / `invest123`
-- VIEWER — `viewer@satguard.local` / `viewer123`
-
-The login page does not offer role selection; these credentials are convenience buttons for a prototype environment and authentication is still delegated to the backend.
+The frontend uses a local session token only for route protection. It does not send the local prototype token to FastAPI as a bearer token. Backend APIs remain available through `VITE_API_BASE_URL` for investigation data and other features.
