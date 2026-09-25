@@ -1,30 +1,45 @@
-# SatGuard — SIH26106 Frontend
+# SATGUARD Frontend
 
-React/Vite frontend for the SIH26106 email threat detection, geolocation and forensic intelligence prototype.
-
-## Included
-- Local demo login with saved session and four demo roles.
-- Dashboard, EML analysis, Gmail ingestion, cases, case investigation, IOC intelligence, reports.
-- 17-feature Advanced Intelligence page.
-- Leaflet + OpenStreetMap threat map with demo points; no Google Maps API key.
-- Case-level Leaflet map with GeoIP points when backend returns coordinates.
-- API base controlled by `VITE_API_BASE_URL`.
-
-## Demo credentials
-- `admin / admin123` — National Cyber Admin
-- `analyst / analyst123` — Forensic Analyst
-- `investigator / invest123` — Investigator
-- `viewer / viewer123` — Viewer
-
-These are prototype-only frontend credentials. They are not secure production authentication.
+Production-oriented React/Vite frontend for the SATGUARD email threat intelligence and digital-forensics platform.
 
 ## Run
+
 ```bash
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-For Vercel/Render set:
-`VITE_API_BASE_URL=https://YOUR-BACKEND/api/v1`
+Set `VITE_API_BASE_URL` to the existing FastAPI base URL. The frontend does not hardcode a Render backend URL.
 
-Leaflet uses public OpenStreetMap tiles. This requires internet access during the demo but no provider API key.
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+## Backend contract
+
+API calls are centralized under `src/api/` and target the existing route families:
+
+- `/cases`
+- `/emails`
+- `/analysis`
+- `/reports`
+- `/intel`
+- `/gmail`
+- `/advanced`
+- `/auth`
+- `/admin`
+
+The UI intentionally does not fabricate threat-intelligence or forensic evidence. Empty/loading/error states are shown when the backend does not return data.
+
+## Demo accounts
+
+- ADMIN — `admin@satguard.local` / `admin123`
+- ANALYST — `analyst@satguard.local` / `analyst123`
+- INVESTIGATOR — `investigator@satguard.local` / `invest123`
+- VIEWER — `viewer@satguard.local` / `viewer123`
+
+The login page does not offer role selection; these credentials are convenience buttons for a prototype environment and authentication is still delegated to the backend.
