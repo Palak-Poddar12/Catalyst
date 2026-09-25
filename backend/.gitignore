@@ -1,0 +1,7 @@
+.env
+venv/
+__pycache__/
+*.pyc
+uploads/
+.alembic/
+.gmail_token.json

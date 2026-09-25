@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: sih26106-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ML_SERVICE_URL
+        sync: false
+      - key: ML_SERVICE_TIMEOUT
+        value: "30"
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MAX_UPLOAD_MB
+        value: "10"

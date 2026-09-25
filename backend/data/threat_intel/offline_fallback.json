@@ -1,0 +1,32 @@
+{
+  "ip_reputation": {
+    "8.8.8.8": {
+      "abuse_confidence_score": 0,
+      "total_reports": 0,
+      "last_reported_at": "",
+      "usage_type": "Public DNS",
+      "isp": "Google LLC",
+      "risk_flags": []
+    }
+  },
+  "url_reputation": {
+    "http://safe-demo.example/": {
+      "query_status": "no_results",
+      "threat": "",
+      "tags": [],
+      "risk_flags": []
+    },
+    "http://malicious-demo.example/login": {
+      "query_status": "offline_demo_match",
+      "threat": "phishing",
+      "tags": [
+        "demo",
+        "credential_theft"
+      ],
+      "risk_flags": [
+        "known_malicious_url",
+        "phishing_indicator"
+      ]
+    }
+  }
+}

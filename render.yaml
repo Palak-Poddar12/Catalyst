@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: backend-ie2s
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ML_SERVICE_URL
+        sync: false
+      - key: ML_SERVICE_TIMEOUT
+        value: "30"
+      - key: CORS_ORIGINS
+        value: "https://catalyst-key6.onrender.com"
+      - key: MAX_UPLOAD_MB
+        value: "20"
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REDIRECT_URI
+        value: "https://backend-ie2s.onrender.com/api/v1/gmail/callback"
+
+  - type: web
+    name: catalyst-key6
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: "https://backend-ie2s.onrender.com"
