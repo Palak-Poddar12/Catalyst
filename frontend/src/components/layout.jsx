@@ -1,4 +1,71 @@
-import React,{useState} from 'react';import {NavLink,useNavigate,useLocation} from 'react-router-dom';import {Shield,LayoutDashboard,FolderSearch,FilePlus2,Globe2,Network,Layers3,FileBarChart2,MailSearch,ScrollText,Users,KeyRound,Settings,UserCircle,LogOut,Menu,X,Bell,Search,Activity,ChevronDown} from 'lucide-react';import {clearSession,roleOf} from '../utils/auth';import {can} from '../utils/permissions';
-const groups=[{title:'Operations',items:[['Dashboard','/dashboard',LayoutDashboard,'dashboard:view'],['Investigations','/cases',FolderSearch,'case:view'],['New Investigation','/investigations/new',FilePlus2,'email:upload'],['Threat Intelligence','/intelligence',Globe2,'threatintel:view'],['Reports','/reports',FileBarChart2,'report:view']]},{title:'Investigation',items:[['IOC Graph','/cases',Network,'graph:view'],['Infrastructure Map','/cases',Globe2,'map:view'],['Campaigns','/cases',Layers3,'campaign:view'],['Gmail','/gmail',MailSearch,'gmail:investigate']]},{title:'Administration',items:[['Audit Logs','/admin/audit',ScrollText,'audit:view'],['Users','/admin/users',Users,'users:manage'],['Roles & Permissions','/admin/roles',KeyRound,'roles:manage'],['System Settings','/admin/settings',Settings,'system:manage']]}];
-export function AppShell({session,children}){const [open,setOpen]=useState(false);const nav=useNavigate();const loc=useLocation();const role=roleOf(session);const logout=()=>{clearSession();nav('/login')};return <div className="app-bg"><aside className={`sidebar ${open?'open':''}`}><div className="brand"><div className="brand-mark"><Shield size={21}/></div><div><b>SATGUARD</b><span>Email Threat Intelligence & Forensics</span></div><button className="icon-btn mobile-only" onClick={()=>setOpen(false)}><X size={18}/></button></div><nav>{groups.map(g=><div className="nav-group" key={g.title}><span className="nav-label">{g.title}</span>{g.items.filter(x=>can(role,x[3])).map(([label,path,Icon])=><NavLink key={label} to={path} onClick={()=>setOpen(false)} className={({isActive})=>`nav-item ${isActive|| (label==='Cases'&&loc.pathname.startsWith('/cases'))?'active':''}`}><Icon size={17}/><span>{label}</span></NavLink>)}</div>)}</nav><div className="sidebar-foot"><NavLink to="/profile" className="nav-item"><UserCircle size={17}/><span>Profile</span></NavLink><button className="nav-item logout" onClick={logout}><LogOut size={17}/><span>Sign out</span></button></div></aside>{open&&<div className="drawer-scrim" onClick={()=>setOpen(false)}/>}<div className="workspace"><header className="topbar"><button className="icon-btn mobile-only" onClick={()=>setOpen(true)}><Menu size={20}/></button><div className="top-search"><Search size={16}/><input placeholder="Search investigations, IOCs, cases…" onKeyDown={e=>{if(e.key==='Enter'&&e.currentTarget.value)nav('/intelligence?q='+encodeURIComponent(e.currentTarget.value))}}/></div><div className="top-actions"><span className="system"><i/>Systems operational</span><button className="icon-btn"><Bell size={18}/></button><button className="user-chip" onClick={()=>nav('/profile')}><span className="avatar">{(session?.user?.name||session?.user?.email||'S').slice(0,1).toUpperCase()}</span><span className="user-meta"><b>{session?.user?.name||session?.user?.email||'Analyst'}</b><small>{role}</small></span><ChevronDown size={14}/></button></div></header><main>{children}</main></div></div>}
+import React,{useState} from 'react';
+import {NavLink,useNavigate,useLocation} from 'react-router-dom';
+import {Shield,LayoutDashboard,FolderSearch,FilePlus2,Globe2,Network,Layers3,FileBarChart2,MailSearch,ScrollText,Users,KeyRound,Settings,UserCircle,LogOut,Menu,X,Bell,Search,Activity,ChevronDown,PanelLeft} from 'lucide-react';
+import {clearSession,roleOf} from '../utils/auth';
+import {can} from '../utils/permissions';
+
+const groups=[
+  {title:'Operations',items:[['Dashboard','/dashboard',LayoutDashboard,'dashboard:view'],['Investigations','/cases',FolderSearch,'case:view'],['New Investigation','/investigations/new',FilePlus2,'email:upload'],['Threat Intelligence','/intelligence',Globe2,'threatintel:view'],['Reports','/reports',FileBarChart2,'report:view']]},
+  {title:'Investigation',items:[['IOC Graph','/cases',Network,'graph:view'],['Infrastructure Map','/cases',Globe2,'map:view'],['Campaigns','/cases',Layers3,'campaign:view'],['Gmail','/gmail',MailSearch,'gmail:investigate']]},
+  {title:'Administration',items:[['Audit Logs','/admin/audit',ScrollText,'audit:view'],['Users','/admin/users',Users,'users:manage'],['Roles & Permissions','/admin/roles',KeyRound,'roles:manage'],['System Settings','/admin/settings',Settings,'system:manage']]}
+];
+
+export function AppShell({session,children}){
+  const [open,setOpen]=useState(false);
+  const nav=useNavigate();
+  const loc=useLocation();
+  const role=roleOf(session);
+  const logout=()=>{clearSession();nav('/login')};
+
+  return <div className="app-bg">
+    <div className="ambient-orbit orbit-a"/><div className="ambient-orbit orbit-b"/>
+    <aside className={`sidebar liquid-sidebar ${open?'open':''}`}>
+      <div className="brand">
+        <div className="brand-mark"><Shield size={21}/></div>
+        <div className="brand-copy"><b>SATGUARD</b><span>Email Threat Intelligence & Forensics</span></div>
+        <button className="icon-btn mobile-only" onClick={()=>setOpen(false)}><X size={18}/></button>
+      </div>
+      <div className="sidebar-status"><Activity size={14}/><span>Security operations</span><i/></div>
+      <nav>
+        {groups.map(g=><div className="nav-group" key={g.title}>
+          <span className="nav-label">{g.title}</span>
+          {g.items.filter(x=>can(role,x[3])).map(([label,path,Icon])=><NavLink key={label} to={path} onClick={()=>setOpen(false)} className={({isActive})=>`nav-item ${isActive||((label==='Investigations'||label==='IOC Graph'||label==='Infrastructure Map'||label==='Campaigns')&&loc.pathname.startsWith('/cases'))?'active':''}`}>
+            <span className="nav-icon"><Icon size={16}/></span><span>{label}</span>
+          </NavLink>)}
+        </div>)}
+      </nav>
+      <div className="sidebar-foot">
+        <NavLink to="/profile" className="nav-item"><span className="nav-icon"><UserCircle size={16}/></span><span>Profile</span></NavLink>
+        <button className="nav-item logout" onClick={logout}><span className="nav-icon"><LogOut size={16}/></span><span>Sign out</span></button>
+      </div>
+    </aside>
+    {open&&<div className="drawer-scrim" onClick={()=>setOpen(false)}/>} 
+    <div className="workspace">
+      <header className="topbar liquid-topbar">
+        <div className="topbar-left">
+          <button className="icon-btn mobile-only" onClick={()=>setOpen(true)}><Menu size={20}/></button>
+          <div className="mobile-brand"><Shield size={16}/><b>SATGUARD</b></div>
+          <div className="top-search"><Search size={16}/><input placeholder="Search investigations, IOCs, cases…" onKeyDown={e=>{if(e.key==='Enter'&&e.currentTarget.value)nav('/intelligence?q='+encodeURIComponent(e.currentTarget.value))}}/></div>
+        </div>
+        <div className="top-actions">
+          <span className="system"><i/>Systems operational</span>
+          <button className="icon-btn glass-icon"><Bell size={18}/></button>
+          <button className="user-chip" onClick={()=>nav('/profile')}>
+            <span className="avatar">{(session?.user?.name||session?.user?.email||'S').slice(0,1).toUpperCase()}</span>
+            <span className="user-meta"><b>{session?.user?.name||session?.user?.email||'Analyst'}</b><small>{role}</small></span>
+            <ChevronDown size={14}/>
+          </button>
+        </div>
+      </header>
+      <main>{children}</main>
+      <div className="bottom-dock">
+        <span className="dock-active"><PanelLeft size={15}/><span>Workspace</span></span>
+        <span><Shield size={15}/><span>Protected</span></span>
+        <span><Activity size={15}/><span>Live telemetry</span></span>
+        <span className="dock-status"><i/>Operational</span>
+      </div>
+    </div>
+  </div>
+}
+
 export function PermissionGate({role,permission,children,fallback=null}){return can(role,permission)?children:fallback}
