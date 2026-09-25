@@ -2,7 +2,6 @@ import React,{useEffect,useState} from 'react';
 import {Routes,Route,Navigate,useLocation,useNavigate} from 'react-router-dom';
 import {getSession,getToken,clearSession,roleOf} from './utils/auth';
 import {can} from './utils/permissions';
-import {authApi} from './api/modules';
 import {AppShell,PermissionGate} from './components/layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
