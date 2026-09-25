@@ -1,5 +1,5 @@
-import {Routes,Route,NavLink,useLocation,useNavigate} from 'react-router-dom';
-import {AuthProvider,useAuth} from './auth/AuthContext';
+import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 import Protected from './components/Protected';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -12,41 +12,88 @@ import ThreatMap from './pages/ThreatMap';
 import Reports from './pages/Reports';
 import AdvancedIntelligence from './pages/AdvancedIntelligence';
 
-const items=[
- ['/','Dashboard','⌂'],['/analyze','Analyze Email','＋'],['/gmail','Connect Gmail','✉'],
- ['/cases','Investigations','▣'],['/map','Threat Map','◎'],['/intel','IOC Intelligence','⌕'],
- ['/intelligence','Intelligence Lab','✦'],['/reports','Forensic Reports','▤']
+const items = [
+  ['/', 'Overview', '⌂'],
+  ['/analyze', 'Analyze email', '↳'],
+  ['/gmail', 'Gmail intake', '✉'],
+  ['/cases', 'Investigations', '▤'],
+  ['/map', 'Threat map', '◎'],
+  ['/intel', 'IOC intelligence', '⌕'],
+  ['/intelligence', 'Intelligence lab', '✦'],
+  ['/reports', 'Reports', '▧'],
 ];
 
-function Shell({children}){
- const {user,signOut}=useAuth(); const loc=useLocation(); const nav=useNavigate();
- const label=items.find(x=>loc.pathname===x[0])?.[1]||(loc.pathname.startsWith('/cases/')?'Case Investigation':'SatGuard');
- return <div className="app-shell">
-  <div className="ambient ambient-one"/><div className="ambient ambient-two"/>
-  <aside className="sidebar glass-panel">
-   <div className="brand">
-    <div className="brand-mark"><span>S</span></div><div><div className="brand-name">SatGuard</div><div className="brand-sub">Email Forensic Intelligence</div></div>
-   </div>
-   <div className="side-label">SECURITY OPERATIONS</div>
-   <nav>{items.map(([to,l,i])=><NavLink key={to} to={to} end={to==='/' } className={({isActive})=>`nav-link ${isActive?'active':''}`}><span className="nav-icon">{i}</span><span>{l}</span></NavLink>)}</nav>
-   <div className="sidebar-bottom">
-    <div className="system-pill"><span className="dot ok"/> All systems operational</div>
-    <div className="user-mini"><div className="avatar">{(user.name||'U').slice(0,1).toUpperCase()}</div><div><b>{user.name}</b><span>{user.role}</span></div></div>
-    <button className="logout" onClick={()=>{signOut();nav('/login')}}>Sign out <span>↗</span></button>
-    <div className="ps">SIH26106 · FINAL SUBMISSION BUILD</div>
-   </div>
-  </aside>
-  <main className="main">
-   <header className="topbar glass-panel">
-    <div><div className="eyebrow">SECURITY OPERATIONS CENTER <span className="live-dot"/> LIVE</div><h1>{label}</h1><p>AI detection · forensic reconstruction · infrastructure intelligence · evidence</p></div>
-    <div className="header-actions"><span className="product-tag"><span className="status-ring"/> {user.role}</span><button className="profile-btn" onClick={()=>nav('/')} aria-label="Open dashboard">{(user.name||'U').slice(0,1).toUpperCase()}</button></div>
-   </header>
-   <div className="page-content">{children}</div>
-  </main>
- </div>
+function Shell({ children }) {
+  const { user, signOut } = useAuth();
+  const loc = useLocation();
+  const nav = useNavigate();
+  const title = items.find(([to]) => loc.pathname === to)?.[1] || (loc.pathname.startsWith('/cases/') ? 'Case investigation' : 'SatGuard');
+
+  return (
+    <div className="product-shell">
+      <aside className="sidebar">
+        <div className="brand-row">
+          <div className="brand-symbol">S</div>
+          <div><strong>SatGuard</strong><span>EMAIL FORENSIC PLATFORM</span></div>
+        </div>
+
+        <div className="workspace-select">
+          <span className="workspace-dot" /> Security Operations
+          <span className="chevron">⌄</span>
+        </div>
+
+        <div className="nav-heading">WORKSPACE</div>
+        <nav className="product-nav">
+          {items.map(([to, label, icon]) => (
+            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `product-nav-link ${isActive ? 'active' : ''}`}>
+              <span className="nav-glyph">{icon}</span><span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-spacer" />
+        <div className="sidebar-status"><span className="status-dot" /> All systems operational</div>
+        <div className="account-row">
+          <div className="account-avatar">{(user?.name || 'U').slice(0, 1).toUpperCase()}</div>
+          <div className="account-copy"><strong>{user?.name || 'Analyst'}</strong><span>{user?.role || 'analyst'}</span></div>
+          <button className="icon-button" onClick={() => { signOut(); nav('/login'); }} title="Sign out">↗</button>
+        </div>
+      </aside>
+
+      <main className="workspace">
+        <header className="workspace-header">
+          <div className="breadcrumbs"><span>SatGuard</span><b>/</b><strong>{title}</strong></div>
+          <div className="header-tools">
+            <div className="system-live"><span className="status-dot" /> Live</div>
+            <button className="header-icon" title="Notifications">♢<i /></button>
+            <button className="profile-chip" onClick={() => nav('/')}><span>{(user?.name || 'U').slice(0, 1).toUpperCase()}</span>{user?.name || 'Analyst'}</button>
+          </div>
+        </header>
+        <section className="workspace-body">{children}</section>
+      </main>
+    </div>
+  );
 }
 
-function App(){return <AuthProvider><Routes><Route path="/login" element={<Login/>}/><Route path="*" element={<Protected><Shell><Routes>
- <Route path="/" element={<Dashboard/>}/><Route path="/analyze" element={<AnalyzeEmail/>}/><Route path="/gmail" element={<GmailIngestion/>}/><Route path="/cases" element={<CasesList/>}/><Route path="/cases/:caseId" element={<CaseDetail/>}/><Route path="/map" element={<ThreatMap/>}/><Route path="/intel" element={<ThreatIntel/>}/><Route path="/intelligence" element={<AdvancedIntelligence/>}/><Route path="/reports" element={<Reports/>}/>
- </Routes></Shell></Protected>}/></Routes></AuthProvider>}
+function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Protected><Shell><Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/analyze" element={<AnalyzeEmail />} />
+          <Route path="/gmail" element={<GmailIngestion />} />
+          <Route path="/cases" element={<CasesList />} />
+          <Route path="/cases/:caseId" element={<CaseDetail />} />
+          <Route path="/map" element={<ThreatMap />} />
+          <Route path="/intel" element={<ThreatIntel />} />
+          <Route path="/intelligence" element={<AdvancedIntelligence />} />
+          <Route path="/reports" element={<Reports />} />
+        </Routes></Shell></Protected>} />
+      </Routes>
+    </AuthProvider>
+  );
+}
+
 export default App;
