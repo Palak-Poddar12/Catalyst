@@ -1,16 +1,30 @@
-# React + Vite
+# SatGuard — SIH26106 Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/Vite frontend for the SIH26106 email threat detection, geolocation and forensic intelligence prototype.
 
-Currently, two official plugins are available:
+## Included
+- Local demo login with saved session and four demo roles.
+- Dashboard, EML analysis, Gmail ingestion, cases, case investigation, IOC intelligence, reports.
+- 17-feature Advanced Intelligence page.
+- Leaflet + OpenStreetMap threat map with demo points; no Google Maps API key.
+- Case-level Leaflet map with GeoIP points when backend returns coordinates.
+- API base controlled by `VITE_API_BASE_URL`.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Demo credentials
+- `admin / admin123` — National Cyber Admin
+- `analyst / analyst123` — Forensic Analyst
+- `investigator / invest123` — Investigator
+- `viewer / viewer123` — Viewer
 
-## React Compiler
+These are prototype-only frontend credentials. They are not secure production authentication.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Run
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+For Vercel/Render set:
+`VITE_API_BASE_URL=https://YOUR-BACKEND/api/v1`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Leaflet uses public OpenStreetMap tiles. This requires internet access during the demo but no provider API key.
