@@ -7,18 +7,20 @@ from sqlalchemy import text
 from app.api.router import api_router
 from app.core.config import settings
 from app.database.database import Base, engine
-from app.database import models  # noqa: F401
-from fastapi.middleware.cors import CORSMiddleware
+from app.database import models
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # MVP bootstrap. Replace with Alembic migrations for production.
     Base.metadata.create_all(bind=engine)
     yield
 
-app = FastAPI()
 
-cors_origins = settings.cors_origin_list
+app = FastAPI(
+    title="SatGuard API",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,15 +33,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 app.include_router(api_router, prefix="/api/v1")
+
 
 @app.get("/")
 def root():
-    return {"project": "SIH26106", "status": "running", "service": "backend"}
+    return {
+        "project": "SIH26106",
+        "status": "running",
+        "service": "backend",
+    }
+
 
 @app.get("/health")
 def health():
     db_status = "connected"
+
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
