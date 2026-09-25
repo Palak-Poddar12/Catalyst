@@ -5,63 +5,7 @@ export default function Investigation({caseId}){const [data,setData]=useState(nu
 const rows=(d,k)=>Array.isArray(d?.[k])?d[k]:[];
 function Overview({data}){const findings=rows(data,'findings');const rb=data.risk_breakdown||{};return <><div className="hero-grid"><GlassCard className="risk-score"><span>Overall Risk Score</span><strong>{data.risk_score??data.score??'—'}</strong><RiskBadge level={data.risk_level||data.risk}/><small>System-generated risk assessment</small></GlassCard><GlassCard><div className="card-title">Classification</div><h3>{data.classification||'—'}</h3><p>Confidence: {data.confidence??'—'}</p></GlassCard><GlassCard><div className="card-title">Why this email was flagged</div>{findings.length?<ul className="finding-list">{findings.slice(0,6).map((f,i)=><li key={i}><ShieldAlert size={16}/><span>{f.title||f.finding||f.description||'Finding returned by backend'}</span></li>)}</ul>:<EmptyState title="No findings returned" text="The case analysis has not supplied forensic findings."/>}</GlassCard></div><Section title="Risk Breakdown" subtitle="System scoring components returned by the analysis service"><div className="score-grid">{[['ML Detection',rb.ml_score??rb.ml??'—'],['Forensic Evidence',rb.forensic_score??rb.forensic??'—'],['Advanced Intelligence',rb.advanced_score??rb.advanced??'—']].map(([l,v])=><GlassCard key={l}><span>{l}</span><strong>{v}{v!=='—'?'%':''}</strong><div className="progress"><i style={{width:v==='—'?'0':`${Math.min(100,Number(v))}%`}}/></div></GlassCard>)}</div></Section></>}
 function Authentication({data}){const a=data.authentication||data.auth||{};return <Section title="Email Authentication" subtitle="Forensic comparison of identity and authentication signals"><div className="auth-grid">{['spf','dkim','dmarc'].map(k=><GlassCard key={k}><span>{k.toUpperCase()}</span><div className="auth-status">{a[k]?.status||a[k]||'UNKNOWN'}</div><small>{a[k]?.reason||'No explanation returned by backend.'}</small></GlassCard>)}</div><GlassCard className="forensic-fields"><b>Header identity</b>{['from','return_path','reply_to','authentication_results'].map(k=><div key={k}><span>{k.replaceAll('_',' ')}</span><code>{a[k]||'—'}</code><CopyButton value={a[k]}/></div>)}</GlassCard></Section>}
-function Relay({ data }) {
-  const relayTimeline = rows(data, 'relay_timeline');
-  const receivedHeaders = rows(data, 'received_headers');
-  const hops = relayTimeline.length ? relayTimeline : receivedHeaders;
-
-  return (
-    <Section
-      title="Relay Timeline"
-      subtitle="Received-header infrastructure path"
-    >
-      <div className="timeline">
-        {hops.length ? (
-          hops.map((h, i) => (
-            <div className="timeline-item" key={i}>
-              <div className="timeline-dot" />
-
-              <GlassCard>
-                <div className="timeline-head">
-                  <b>{h.hostname || h.host || 'Mail infrastructure'}</b>
-                  <span>{h.timestamp || '—'}</span>
-                </div>
-
-                <div className="mini-grid">
-                  <span>
-                    IP <b>{h.ip || '—'}</b>
-                  </span>
-
-                  <span>
-                    Provider <b>{h.provider || '—'}</b>
-                  </span>
-
-                  <span>
-                    Country <b>{h.country || '—'}</b>
-                  </span>
-
-                  <span>
-                    ASN <b>{h.asn || '—'}</b>
-                  </span>
-                </div>
-              </GlassCard>
-            </div>
-          ))
-        ) : (
-          <EmptyState
-            title="No relay hops returned"
-            text="Received headers or relay telemetry are not available for this case."
-          />
-        )}
-      </div>
-
-      <div className="notice">
-        Infrastructure geolocation is contextual intelligence and does not prove
-        the physical identity/location of the sender.
-      </div>
-    </Section>
-  );
-}
+function Relay({data}){const hops=rows(data,'relay_timeline').length?rows(data,'relay_timeline'):rows(data,'received_headers');return <Section title="Relay Timeline" subtitle="Received-header infrastructure path"><div className="timeline">{hops.length?hops.map((h,i)=><div className="timeline-item" key={i}><div className="timeline-dot"/><GlassCard><div className="timeline-head"><b>{h.hostname||h.host||'Mail infrastructure'}</b><span>{h.timestamp||'—'}</span></div><div className="mini-grid"><span>IP <b>{h.ip||'—'}</b></span><span>Provider <b>{h.provider||'—'}</b></span><span>Country <b>{h.country||'—'}</b></span><span>ASN <b>{h.asn||'—'}</b></span></div></GlassCard></div>):<EmptyState title="No relay hops returned" text="Received headers or relay telemetry are not available for this case."/>}</div><div className="notice">Infrastructure geolocation is contextual intelligence and does not prove the physical identity/location of the sender.</div></Section>)}
 function Infrastructure({data}){return <Section title="Infrastructure Map" subtitle="GeoIP context for infrastructure indicators"><ThreatMap points={rows(data,'infrastructure').concat(rows(data,'relay_timeline'))}/></Section>}
 function IOCs({data}){const list=rows(data,'iocs').length?rows(data,'iocs'):rows(data,'indicators');return <Section title="IOC Intelligence" subtitle="Indicators extracted or associated with this investigation"><DataTable rows={list} columns={[{key:'type',label:'Type'},{key:'value',label:'Value',render:r=><span className="mono">{r.value||r.indicator||'—'}</span>},{key:'source',label:'Source'},{key:'risk',label:'Risk',render:r=><RiskBadge level={r.risk}/>} ,{key:'confidence',label:'Confidence'},{key:'first_seen',label:'First Seen'},{key:'related_cases',label:'Related Cases'}]}/></Section>}
 function Findings({data,canEdit,onAdd}){const list=rows(data,'findings');return <Section title="Forensic Findings" subtitle="Evidence-backed observations from analysis" actions={canEdit&&<button className="secondary" onClick={onAdd}><Plus size={16}/>Add finding</button>}><DataTable rows={list} columns={[{key:'title',label:'Finding',render:r=>r.title||r.finding},{key:'severity',label:'Severity',render:r=><RiskBadge level={r.severity}/>} ,{key:'category',label:'Category'},{key:'evidence',label:'Evidence'},{key:'confidence',label:'Confidence'},{key:'status',label:'Status',render:r=><StatusBadge status={r.status}/>} ]}/></Section>}
