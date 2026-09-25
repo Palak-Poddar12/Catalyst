@@ -1,7 +1,15 @@
 import {api} from './client';
 export const getCases=()=>api('/cases');
 export const createCase=(payload)=>api('/cases',{method:'POST',body:JSON.stringify(payload)});
-export const uploadEmail=(caseId,file)=>{const fd=new FormData();fd.append('file',file);return api(`/emails/upload?case_id=${encodeURIComponent(caseId)}`,{method:'POST',body:fd});};
+export const uploadEmail = (caseId, file) => {
+  const fd = new FormData();
+  fd.append("file", file);
+
+  return api(`/emails/upload/${encodeURIComponent(caseId)}`, {
+    method: "POST",
+    body: fd,
+  });
+};
 export const getCase=(id)=>api(`/cases/${id}`);
 export const getCaseAnalyses=(id)=>api(`/analysis/case/${id}`);
 export const getAnalysis=(id)=>api(`/analysis/${id}`);
