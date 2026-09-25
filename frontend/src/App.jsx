@@ -1,99 +1,18 @@
-import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './auth/AuthContext';
-import Protected from './components/Protected';
+import React,{useEffect,useState} from 'react';
+import {Routes,Route,Navigate,useLocation,useNavigate} from 'react-router-dom';
+import {getSession,getToken,clearSession,roleOf} from './utils/auth';
+import {can} from './utils/permissions';
+import {authApi} from './api/modules';
+import {AppShell,PermissionGate} from './components/layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import AnalyzeEmail from './pages/AnalyzeEmail';
-import GmailIngestion from './pages/GmailIngestion';
-import CasesList from './pages/CasesList';
-import CaseDetail from './pages/CaseDetail';
-import ThreatIntel from './pages/ThreatIntel';
-import ThreatMap from './pages/ThreatMap';
+import Cases,{CaseDetail} from './pages/Cases';
+import Investigation from './pages/Investigation';
+import Intelligence from './pages/Intelligence';
+import Admin from './pages/Admin';
 import Reports from './pages/Reports';
-import AdvancedIntelligence from './pages/AdvancedIntelligence';
-
-const items = [
-  ['/', 'Overview', '⌂'],
-  ['/analyze', 'Analyze email', '↳'],
-  ['/gmail', 'Gmail intake', '✉'],
-  ['/cases', 'Investigations', '▤'],
-  ['/map', 'Threat map', '◎'],
-  ['/intel', 'IOC intelligence', '⌕'],
-  ['/intelligence', 'Intelligence lab', '✦'],
-  ['/reports', 'Reports', '▧'],
-];
-
-function Shell({ children }) {
-  const { user, signOut } = useAuth();
-  const loc = useLocation();
-  const nav = useNavigate();
-  const title = items.find(([to]) => loc.pathname === to)?.[1] || (loc.pathname.startsWith('/cases/') ? 'Case investigation' : 'SatGuard');
-
-  return (
-    <div className="product-shell">
-      <aside className="sidebar">
-        <div className="brand-row">
-          <div className="brand-symbol">S</div>
-          <div><strong>SatGuard</strong><span>EMAIL FORENSIC PLATFORM</span></div>
-        </div>
-
-        <div className="workspace-select">
-          <span className="workspace-dot" /> Security Operations
-          <span className="chevron">⌄</span>
-        </div>
-
-        <div className="nav-heading">WORKSPACE</div>
-        <nav className="product-nav">
-          {items.map(([to, label, icon]) => (
-            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `product-nav-link ${isActive ? 'active' : ''}`}>
-              <span className="nav-glyph">{icon}</span><span>{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="sidebar-spacer" />
-        <div className="sidebar-status"><span className="status-dot" /> All systems operational</div>
-        <div className="account-row">
-          <div className="account-avatar">{(user?.name || 'U').slice(0, 1).toUpperCase()}</div>
-          <div className="account-copy"><strong>{user?.name || 'Analyst'}</strong><span>{user?.role || 'analyst'}</span></div>
-          <button className="icon-button" onClick={() => { signOut(); nav('/login'); }} title="Sign out">↗</button>
-        </div>
-      </aside>
-
-      <main className="workspace">
-        <header className="workspace-header">
-          <div className="breadcrumbs"><span>SatGuard</span><b>/</b><strong>{title}</strong></div>
-          <div className="header-tools">
-            <div className="system-live"><span className="status-dot" /> Live</div>
-            <button className="header-icon" title="Notifications">♢<i /></button>
-            <button className="profile-chip" onClick={() => nav('/')}><span>{(user?.name || 'U').slice(0, 1).toUpperCase()}</span>{user?.name || 'Analyst'}</button>
-          </div>
-        </header>
-        <section className="workspace-body">{children}</section>
-      </main>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Protected><Shell><Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/analyze" element={<AnalyzeEmail />} />
-          <Route path="/gmail" element={<GmailIngestion />} />
-          <Route path="/cases" element={<CasesList />} />
-          <Route path="/cases/:caseId" element={<CaseDetail />} />
-          <Route path="/map" element={<ThreatMap />} />
-          <Route path="/intel" element={<ThreatIntel />} />
-          <Route path="/intelligence" element={<AdvancedIntelligence />} />
-          <Route path="/reports" element={<Reports />} />
-        </Routes></Shell></Protected>} />
-      </Routes>
-    </AuthProvider>
-  );
-}
-
-export default App;
+import Gmail from './pages/Gmail';
+import Profile from './pages/Profile';
+import NewInvestigation from './pages/NewInvestigation';
+function Protected({children,permission}){const s=getSession();if(!s||!getToken())return <Navigate to="/login" replace/>;if(permission&&!can(roleOf(s),permission))return <Navigate to="/dashboard" replace/>;return <AppShell session={s}>{children}</AppShell>}
+export default function App(){return <Routes><Route path="/login" element={<Login/>}/><Route path="/" element={<Navigate to="/dashboard" replace/>}/><Route path="/dashboard" element={<Protected permission="dashboard:view"><Dashboard/></Protected>}/><Route path="/investigations/new" element={<Protected permission="email:upload"><NewInvestigation/></Protected>}/><Route path="/cases" element={<Protected permission="case:view"><Cases/></Protected>}/><Route path="/cases/:caseId" element={<Protected permission="case:view"><CaseDetail/></Protected>}/><Route path="/intelligence" element={<Protected permission="threatintel:view"><Intelligence/></Protected>}/><Route path="/reports" element={<Protected permission="report:view"><Reports/></Protected>}/><Route path="/gmail" element={<Protected permission="gmail:investigate"><Gmail/></Protected>}/><Route path="/admin/*" element={<Protected permission="users:manage"><Admin/></Protected>}/><Route path="/profile" element={<Protected><Profile/></Protected>}/><Route path="*" element={<Navigate to="/dashboard" replace/>}/></Routes>}
