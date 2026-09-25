@@ -17,7 +17,7 @@ export const getAdvanced=(id)=>api(`/advanced/analysis/${id}`);
 export const advancedSearch=(q)=>api(`/advanced/search?q=${encodeURIComponent(q)}`);
 export const advancedDashboard=()=>api('/advanced/dashboard');
 export const intel=(type,value)=>type==='url'?api(`/intel/url?url=${encodeURIComponent(value)}`):api(`/intel/${type}/${encodeURIComponent(value)}`);
-export const reportPdf=(id)=>`${apiBase}/reports/${id}/pdf`;
+export const reportPdf = (id) => `${import.meta.env.VITE_API_BASE_URL}/reports/${id}/pdf`;
 export const reportJson=(id)=>api(`/reports/${id}`);
 export const gmailAuth=()=>api('/gmail/auth-url');
 export const gmailStatus=()=>api('/gmail/status');
