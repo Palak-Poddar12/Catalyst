@@ -1,0 +1,16 @@
+import {api} from './client';
+export const getCases=()=>api('/cases');
+export const createCase=(payload)=>api('/cases',{method:'POST',body:JSON.stringify(payload)});
+export const uploadEmail=(caseId,file)=>{const fd=new FormData();fd.append('file',file);return api(`/emails/upload?case_id=${encodeURIComponent(caseId)}`,{method:'POST',body:fd});};
+export const getCase=(id)=>api(`/cases/${id}`);
+export const getCaseAnalyses=(id)=>api(`/analysis/case/${id}`);
+export const getAnalysis=(id)=>api(`/analysis/${id}`);
+export const getAdvanced=(id)=>api(`/advanced/analysis/${id}`);
+export const advancedSearch=(q)=>api(`/advanced/search?q=${encodeURIComponent(q)}`);
+export const advancedDashboard=()=>api('/advanced/dashboard');
+export const intel=(type,value)=>type==='url'?api(`/intel/url?url=${encodeURIComponent(value)}`):api(`/intel/${type}/${encodeURIComponent(value)}`);
+export const reportPdf=(id)=>`${apiBase}/reports/${id}/pdf`;
+export const reportJson=(id)=>api(`/reports/${id}`);
+export const gmailAuth=()=>api('/gmail/auth-url');
+export const gmailStatus=()=>api('/gmail/status');
+export const gmailSync=()=>api('/gmail/sync',{method:'POST'});
