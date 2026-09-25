@@ -1,0 +1,1 @@
+export default function RiskBadge({level,score}){const l=(level||'UNKNOWN').toUpperCase();return <span className={`risk risk-${l.toLowerCase()}`}>{l}{score!==undefined?` · ${Math.round(Number(score)*100)}%`:''}</span>}

@@ -1,0 +1,6 @@
+import {MapContainer,TileLayer,Marker,Popup,Tooltip,useMap} from 'react-leaflet';
+import L from 'leaflet';
+import {useEffect} from 'react';
+const icon=L.divIcon({className:'sg-marker',html:'<span></span>',iconSize:[22,22],iconAnchor:[11,11]});
+function Fit({points}){const map=useMap();useEffect(()=>{if(points.length)map.fitBounds(points.map(p=>[p.lat,p.lng]),{padding:[35,35],maxZoom:5});},[points,map]);return null;}
+export default function ThreatLeafletMap({points=[],height=430}){const valid=points.filter(p=>Number.isFinite(+p.lat)&&Number.isFinite(+p.lng));const center=valid.length?[+valid[0].lat,+valid[0].lng]:[22.9734,78.6569];return <MapContainer center={center} zoom={5} style={{height,width:'100%'}} scrollWheelZoom><TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/><Fit points={valid}/>{valid.map((p,i)=><Marker key={p.id||i} position={[+p.lat,+p.lng]} icon={icon}><Tooltip permanent={false}>{p.label||p.ip||'Threat infrastructure'}</Tooltip><Popup><b>{p.label||'Threat infrastructure'}</b><br/>IP: {p.ip||'—'}<br/>Location: {p.city||'Unknown'}, {p.country||'Unknown'}<br/>ASN: {p.asn||'—'}<br/><small>Infrastructure geolocation; not proof of attacker identity.</small></Popup></Marker>)}</MapContainer>}

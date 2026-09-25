@@ -1,0 +1,1 @@
+export default function StatCard({label,value,sub,kind=''}){return <div className={`stat-card ${kind}`}><div className="stat-top"><span>{label}</span><span>●</span></div><div className="stat-value">{value}</div><div className="stat-sub">{sub}</div></div>}
