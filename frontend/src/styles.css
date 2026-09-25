@@ -94,3 +94,239 @@ tbody tr:hover{background:rgba(101,215,255,.035)}
 
 @media(max-width:900px){.login-card{grid-template-columns:1fr;max-width:560px}.login-hero{min-height:290px;padding:34px 32px}.login-hero h1{font-size:42px}.login-panel{border-left:0;border-top:1px solid rgba(255,255,255,.16);padding:34px 30px}.hero-points{display:none}}
 @media(max-width:600px){.login-page{padding:10px}.login-card{border-radius:20px}.login-hero{min-height:240px;padding:27px 23px}.login-hero h1{font-size:36px}.login-panel{padding:26px 20px}.demo-grid{grid-template-columns:1fr 1fr}}
+
+/* SATGUARD LIGHT GLASS VISUAL SYSTEM — exact supplied security background */
+:root{
+  --bg-primary:#eef6fb;
+  --bg-secondary:#f7fbfe;
+  --glass-bg:rgba(255,255,255,.58);
+  --glass-border:rgba(255,255,255,.72);
+  --glass-hover:rgba(255,255,255,.78);
+  --text-primary:#12253a;
+  --text-secondary:#52677b;
+  --text-muted:#74879a;
+  --accent:#087ea8;
+  --accent-soft:rgba(8,126,168,.10);
+  --violet:#7565c7;
+  --critical:#c83d58;
+  --high:#b66b08;
+  --medium:#9a7900;
+  --low:#19734a;
+  --success:#168457;
+  --warning:#a96d00;
+  --danger:#c23c50;
+}
+
+html,body,#root{background:#edf6fa;color:var(--text-primary)}
+body{color:var(--text-primary)}
+
+.app-bg{
+  position:relative;
+  min-height:100vh;
+  background:
+    linear-gradient(90deg,rgba(222,240,248,.20),rgba(255,255,255,.04) 46%,rgba(255,255,255,.16)),
+    url('./assets/satguard-reference-bg.jpg') center/cover fixed no-repeat;
+}
+.app-bg:before{
+  background:
+    radial-gradient(circle at 17% 24%,rgba(38,160,198,.10),transparent 30%),
+    radial-gradient(circle at 82% 18%,rgba(129,108,203,.07),transparent 26%),
+    linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+}
+
+button,input,select,textarea{font:inherit}
+input,select,textarea{
+  background:rgba(255,255,255,.62);
+  color:#15283d;
+  border-color:rgba(80,112,136,.20);
+  box-shadow:inset 0 1px rgba(255,255,255,.72);
+}
+input::placeholder,textarea::placeholder{color:#8295a7}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(8,126,168,.42);
+  box-shadow:0 0 0 3px rgba(8,126,168,.08),inset 0 1px rgba(255,255,255,.8);
+}
+label{color:#52677b}
+
+.primary{
+  background:#123a55;
+  color:#fff;
+  box-shadow:0 10px 26px rgba(18,58,85,.18);
+}
+.primary:hover{background:#0d3047}
+.secondary{
+  background:rgba(255,255,255,.50);
+  border-color:rgba(255,255,255,.76);
+  color:#183149;
+  box-shadow:0 6px 22px rgba(37,73,96,.07);
+}
+.secondary:hover{background:rgba(255,255,255,.76)}
+.icon-btn{color:#526b7e}
+.icon-btn:hover{background:rgba(255,255,255,.55);color:#163149}
+.text-btn,.link-btn{color:#087ea8}
+
+/* Floating navigation glass */
+.sidebar{
+  background:rgba(247,252,254,.48);
+  border-right:1px solid rgba(255,255,255,.72);
+  backdrop-filter:blur(28px) saturate(125%);
+  box-shadow:18px 0 55px rgba(53,91,112,.09);
+}
+.brand{border-bottom-color:rgba(72,106,126,.10)}
+.brand-mark{
+  background:rgba(255,255,255,.48);
+  border-color:rgba(255,255,255,.78);
+  color:#087ea8;
+  box-shadow:0 8px 22px rgba(42,94,117,.08),inset 0 1px rgba(255,255,255,.85);
+}
+.brand b{color:#153149}
+.brand span{color:#71869a}
+.nav-label{color:#8093a4}
+.nav-item{color:#587086}
+.nav-item:hover{color:#183149;background:rgba(255,255,255,.48)}
+.nav-item.active{
+  background:rgba(255,255,255,.72);
+  color:#0b688c;
+  border-color:rgba(8,126,168,.14);
+  box-shadow:0 7px 24px rgba(41,92,116,.08),inset 3px 0 #38a9ca;
+}
+.sidebar-foot{border-top-color:rgba(72,106,126,.10)}
+
+.workspace{position:relative}
+.topbar{
+  background:rgba(247,252,254,.46);
+  border-bottom-color:rgba(255,255,255,.72);
+  backdrop-filter:blur(25px) saturate(125%);
+  box-shadow:0 7px 30px rgba(42,81,102,.06);
+}
+.top-search{
+  background:rgba(255,255,255,.42);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:inset 0 1px rgba(255,255,255,.7);
+}
+.top-search input{background:transparent;border:0;color:#183149;box-shadow:none}
+.top-actions .system{color:#4f6b7d}
+.system{border-color:rgba(22,132,87,.15);background:rgba(22,132,87,.06)}
+.user-chip{background:rgba(255,255,255,.42);border-color:rgba(255,255,255,.72);color:#183149}
+.avatar{background:rgba(8,126,168,.10);border-color:rgba(8,126,168,.18);color:#087ea8}
+.user-meta small{color:#74879a}
+
+.workspace main{padding-top:30px}
+.page-header h1{color:#132c43}
+.page-header p{color:#60778b}
+.eyebrow{color:#6e879b}
+
+.glass-card{
+  background:linear-gradient(145deg,rgba(255,255,255,.67),rgba(244,250,253,.48));
+  border-color:rgba(255,255,255,.76);
+  box-shadow:0 18px 48px rgba(40,78,99,.09),inset 0 1px rgba(255,255,255,.85);
+  backdrop-filter:blur(22px) saturate(120%);
+}
+.glass-card:hover{border-color:rgba(8,126,168,.18)}
+.stat-card{background:rgba(255,255,255,.55)}
+.stat-icon{background:rgba(63,100,121,.07);color:#587287}
+.stat-icon.accent{background:rgba(8,126,168,.09);color:#087ea8}
+.stat-icon.violet{background:rgba(117,101,199,.09);color:#7565c7}
+.stat-icon.high{background:rgba(182,107,8,.09);color:#a76408}
+.stat-icon.critical,.stat-icon.danger{background:rgba(200,61,88,.09);color:#c83d58}
+.stat-copy span,.stat-copy small{color:#74879a}
+.stat-copy strong{color:#173149}
+
+.section-head h2{color:#19334a}
+.section-head p{color:#70869a}
+.risk-track{background:rgba(71,107,126,.10)}
+.risk-track span{background:linear-gradient(90deg,#42a8c8,#8171cf)}
+.risk-row b{color:#314d63}
+.bars{background:rgba(255,255,255,.12);border-radius:14px}
+.bar-col span{background:linear-gradient(180deg,#46a9c7,#7c6acb)}
+.bar-col small{color:#7890a2}
+
+.table-wrap{
+  background:rgba(248,252,254,.55);
+  border-color:rgba(255,255,255,.76);
+  box-shadow:0 15px 40px rgba(45,82,101,.06);
+  backdrop-filter:blur(18px);
+}
+th{background:rgba(255,255,255,.36);color:#72889b;border-bottom-color:rgba(83,113,132,.10)}
+td{color:#385269;border-bottom-color:rgba(83,113,132,.08)}
+tr:hover td{background:rgba(255,255,255,.38)}
+
+.state{color:#70869a}
+.state strong{color:#3e586e}
+.toolbar .search-input{background:rgba(255,255,255,.48);border-color:rgba(255,255,255,.72)}
+.search-input input{background:transparent;border:0;box-shadow:none;color:#183149}
+.back-btn{color:#60788c}
+.case-strip{border-color:rgba(255,255,255,.74);background:rgba(255,255,255,.48)}
+.case-strip>div{background:rgba(255,255,255,.55)}
+.case-strip span{color:#7890a2}
+.case-strip b{color:#183149}
+
+.badge{border-color:rgba(76,108,127,.14)}
+.risk-critical{color:#a62e48;background:rgba(200,61,88,.08);border-color:rgba(200,61,88,.18)}
+.risk-high{color:#955807;background:rgba(182,107,8,.08);border-color:rgba(182,107,8,.18)}
+.risk-medium{color:#7f6800;background:rgba(154,121,0,.08);border-color:rgba(154,121,0,.16)}
+.risk-low{color:#176746;background:rgba(25,115,74,.08);border-color:rgba(25,115,74,.16)}
+.status{color:#536c80}
+
+/* Investigation-specific light glass surfaces */
+.forensic-fields,.timeline .glass-card,.evidence-card,.finding-card{background:rgba(255,255,255,.58)}
+.notice{background:rgba(255,255,255,.45)!important;border-color:rgba(255,255,255,.72)!important;color:#587084!important}
+.pipeline .step{background:rgba(255,255,255,.52)!important;border-color:rgba(255,255,255,.72)!important;color:#365267!important}
+
+/* Login: lighter, image-led reference composition */
+.login-page{
+  background:
+    linear-gradient(90deg,rgba(218,239,247,.14),rgba(255,255,255,.02) 48%,rgba(255,255,255,.16)),
+    url('./assets/satguard-reference-bg.jpg') center/cover fixed no-repeat;
+}
+.login-page:after{
+  background:linear-gradient(90deg,rgba(220,240,248,.08),rgba(255,255,255,.02) 50%,rgba(255,255,255,.12));
+}
+.login-glow{background:rgba(76,190,221,.10);filter:blur(100px)}
+.login-card{
+  background:rgba(255,255,255,.30);
+  border-color:rgba(255,255,255,.76);
+  box-shadow:0 34px 100px rgba(41,79,98,.16),inset 0 1px rgba(255,255,255,.85);
+  backdrop-filter:blur(26px) saturate(125%);
+}
+.login-card:before{background:linear-gradient(120deg,rgba(255,255,255,.24),transparent 40%,rgba(91,190,219,.035))}
+.login-hero{min-height:610px}
+.login-hero:before{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(19,55,75,.34))}
+.login-hero .hero-kicker{color:#286e89;text-shadow:0 1px 10px rgba(255,255,255,.6)}
+.login-hero h1{color:#12324a;text-shadow:0 2px 24px rgba(255,255,255,.48)}
+.login-hero p{color:#4f6879;text-shadow:0 1px 12px rgba(255,255,255,.65)}
+.hero-point{background:rgba(255,255,255,.43);border-color:rgba(255,255,255,.72);color:#31566d;box-shadow:0 8px 20px rgba(47,91,112,.07)}
+.login-panel{
+  background:rgba(250,253,255,.72);
+  border-left-color:rgba(255,255,255,.72);
+  box-shadow:-20px 0 55px rgba(40,79,98,.06);
+}
+.login-brand b{color:#173149}
+.login-brand span{color:#668095}
+.login-panel .brand-mark{background:rgba(255,255,255,.65);color:#087ea8;border-color:rgba(8,126,168,.16)}
+.login-title h1{color:#142e45}
+.login-title p{color:#61788a}
+.login-form label{color:#536a7c}
+.login-form input,.password{background:rgba(255,255,255,.76);border-color:rgba(94,125,143,.18);color:#15283d}
+.login-form .primary{background:#123a55;color:#fff;box-shadow:0 10px 25px rgba(18,58,85,.17)}
+.login-form .primary:hover{background:#0d3047}
+.login-options .text-btn{color:#087ea8}
+.demo-box{border-top-color:rgba(87,117,135,.15)}
+.demo-grid button{background:rgba(255,255,255,.48);border-color:rgba(94,125,143,.15);color:#28465c}
+.demo-grid button:hover{background:rgba(255,255,255,.78);border-color:rgba(8,126,168,.22)}
+.demo-grid span{color:#1d3a50}
+.demo-grid small{color:#71889a}
+.secure{color:#60798b}
+.login-error{background:rgba(200,61,88,.07)!important;border-color:rgba(200,61,88,.16)!important;color:#a62e48!important}
+
+@media(max-width:1100px){
+  .stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .sidebar{background:rgba(247,252,254,.72)}
+  .topbar{background:rgba(247,252,254,.62)}
+}
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .workspace main{padding:22px 16px 40px}
+}
