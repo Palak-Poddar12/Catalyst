@@ -2,8 +2,7 @@ import hashlib
 import json
 import os
 from datetime import datetime, timedelta
-from email import policy
-from email.parser import BytesParser
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -11,123 +10,151 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.database.database import SessionLocal, get_db
-from app.database.models import Case, Email, GmailConnection, GmailOAuthState
+from app.database.models import Case, Email, GmailOAuthState
 from app.emails.service import process_email
 from gmail_client import (
-    GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REDIRECT_URI,
-    exchange_code_for_tokens, get_credentials_from_token,
-    get_gmail_authorization_url, get_gmail_profile_email,
-    get_message_raw, list_recent_message_ids,
+    GMAIL_CLIENT_ID,
+    GMAIL_CLIENT_SECRET,
+    GMAIL_REDIRECT_URI,
+    get_gmail_authorization_data,
+    get_credentials_from_token,
+    exchange_code_for_tokens,
+    list_recent_message_ids,
+    get_message_raw,
 )
 
 router = APIRouter(prefix="/gmail", tags=["Gmail Ingestion"])
+_TOKEN = None
 _FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:5173")
+_DEFAULT_TOKEN_PATH = Path(__file__).resolve().parents[1] / ".gmail_token.json"
+_configured_token_path = os.getenv("GMAIL_TOKEN_PATH")
+_TOKEN_PATH = Path(_configured_token_path) if _configured_token_path else _DEFAULT_TOKEN_PATH
 _SYNC_JOBS = {}
-STATE_TTL_MINUTES = 10
 
-def _state_hash(state: str) -> str:
+if not _TOKEN_PATH.is_file() and _DEFAULT_TOKEN_PATH.is_file():
+    _TOKEN_PATH = _DEFAULT_TOKEN_PATH
+try:
+    _TOKEN = _TOKEN_PATH.read_text(encoding="utf-8")
+except (FileNotFoundError, OSError):
+    _TOKEN = None
+
+
+def _save_token(token: str) -> None:
+    _TOKEN_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = _TOKEN_PATH.with_suffix(".tmp")
+    temporary_path.write_text(token, encoding="utf-8")
+    temporary_path.replace(_TOKEN_PATH)
+
+
+def _hash_state(state: str) -> str:
     return hashlib.sha256(state.encode("utf-8")).hexdigest()
 
-def _save_connection(db: Session, credentials, email_address: str) -> None:
-    row = db.get(GmailConnection, 1)
-    if row is None:
-        row = GmailConnection(id=1, email_address=email_address, token_json=credentials.to_json())
-        db.add(row)
-    else:
-        row.email_address = email_address
-        row.token_json = credentials.to_json()
+
+def _cleanup_oauth_states(db: Session) -> None:
+    now = datetime.utcnow()
+    db.query(GmailOAuthState).filter(GmailOAuthState.expires_at < now).delete(synchronize_session=False)
     db.commit()
+
 
 @router.get("/auth-url")
 def auth_url(db: Session = Depends(get_db)):
     if not GMAIL_CLIENT_ID or not GMAIL_CLIENT_SECRET:
         raise HTTPException(503, "Gmail OAuth is not configured. Set GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET.")
-    url, state, verifier = get_gmail_authorization_url()
-    db.query(GmailOAuthState).filter(GmailOAuthState.expires_at < datetime.utcnow()).delete(synchronize_session=False)
-    db.add(GmailOAuthState(
-        state_hash=_state_hash(state),
-        code_verifier=verifier,
-        expires_at=datetime.utcnow() + timedelta(minutes=STATE_TTL_MINUTES),
-    ))
-    db.commit()
-    return {"authorization_url": url}
+    try:
+        _cleanup_oauth_states(db)
+        authorization_url, state, code_verifier = get_gmail_authorization_data()
+        db.add(GmailOAuthState(
+            state_hash=_hash_state(state),
+            code_verifier=code_verifier,
+            redirect_uri=GMAIL_REDIRECT_URI,
+            expires_at=datetime.utcnow() + timedelta(minutes=10),
+        ))
+        db.commit()
+        return {"authorization_url": authorization_url}
+    except Exception:
+        db.rollback()
+        raise
+
 
 @router.get("/callback")
 def callback(code: str, state: str, db: Session = Depends(get_db)):
-    row = db.query(GmailOAuthState).filter(GmailOAuthState.state_hash == _state_hash(state)).first()
-    if row is None or row.expires_at < datetime.utcnow():
-        if row is not None:
-            db.delete(row); db.commit()
-        raise HTTPException(400, "Gmail OAuth state is missing or expired. Start a fresh Gmail connection.")
+    global _TOKEN
+    row = None
     try:
-        credentials = exchange_code_for_tokens(code, row.code_verifier)
-        email_address = get_gmail_profile_email(credentials)
-        _save_connection(db, credentials, email_address)
-        db.delete(row)
+        _cleanup_oauth_states(db)
+        row = (
+            db.query(GmailOAuthState)
+            .filter(
+                GmailOAuthState.state_hash == _hash_state(state),
+                GmailOAuthState.redirect_uri == GMAIL_REDIRECT_URI,
+                GmailOAuthState.expires_at >= datetime.utcnow(),
+                GmailOAuthState.consumed_at.is_(None),
+            )
+            .first()
+        )
+        if row is None:
+            raise ValueError("OAuth state is missing or expired. Start a new Gmail connection.")
+
+        credentials = exchange_code_for_tokens(code, state, row.code_verifier)
+        _TOKEN = credentials.to_json()
+        _save_token(_TOKEN)
+        row.consumed_at = datetime.utcnow()
         db.commit()
         return RedirectResponse(url=f"{_FRONTEND_URL}/gmail?connected=1", status_code=303)
     except Exception as exc:
         db.rollback()
-        raise HTTPException(400, f"Gmail OAuth failed while exchanging the authorization code. Verify the redirect URI {GMAIL_REDIRECT_URI}. Details: {exc}") from exc
+        _TOKEN = None
+        raise HTTPException(
+            400,
+            "Gmail OAuth failed while exchanging the authorization code. "
+            "Use a fresh consent flow and verify the Google OAuth redirect URI "
+            f"matches {GMAIL_REDIRECT_URI}. Details: {exc}",
+        ) from exc
+
 
 @router.get("/status")
-def status(db: Session = Depends(get_db)):
-    row = db.get(GmailConnection, 1)
-    return {"connected": bool(row), "email": row.email_address if row else None}
+def status():
+    return {"connected": _TOKEN is not None}
 
-def _gmail_case(db: Session) -> Case:
-    case = db.query(Case).filter(Case.name == "Gmail Inbox").order_by(Case.id.desc()).first()
-    if case is None:
-        case = Case(title="Gmail Threat Triage", name="Gmail Inbox", description="Mailbox-ingested forensic investigations", severity="MEDIUM")
-        db.add(case); db.commit(); db.refresh(case)
-    return case
-
-def _header(msg, name: str) -> str:
-    return str(msg.get(name, "") or "")
 
 def _run_sync(job_id: str, max_emails: int) -> None:
     db = SessionLocal()
-    _SYNC_JOBS[job_id] = {"status": "running", "synced": [], "failed": []}
+    _SYNC_JOBS[job_id] = {"status": "running", "synced": []}
     try:
-        connection = db.get(GmailConnection, 1)
-        if connection is None:
-            raise RuntimeError("Connect Gmail first.")
-        credentials = get_credentials_from_token(json.loads(connection.token_json))
-        case = _gmail_case(db)
-        ids = list_recent_message_ids(credentials, max_results=max_emails)
-        existing = {row[0] for row in db.query(Email.message_id).filter(Email.message_id.in_(ids)).all() if row[0]}
+        if _TOKEN is None:
+            raise RuntimeError("Gmail is not connected.")
+        creds = get_credentials_from_token(json.loads(_TOKEN))
+        case = Case(title="Gmail Threat Triage", name="Gmail Inbox", description="Mailbox-ingested forensic investigations", severity="MEDIUM")
+        db.add(case)
+        db.commit()
+        db.refresh(case)
+        ids = list_recent_message_ids(creds, max_results=max_emails)
+        existing_ids = {row[0] for row in db.query(Email.message_id).filter(Email.message_id.in_(ids)).all() if row[0]}
         results = []
         for mid in ids:
-            if mid in existing:
-                existing_email = db.query(Email).filter(Email.message_id == mid).first()
-                results.append({"message_id": mid, "status": "already_synced", "email_id": existing_email.id if existing_email else None, "case_id": case.id})
+            if mid in existing_ids:
+                results.append({"message_id": mid, "status": "already_synced"})
                 _SYNC_JOBS[job_id]["synced"] = results
                 continue
             try:
-                raw = get_message_raw(credentials, mid)
-                parsed = BytesParser(policy=policy.default).parsebytes(raw)
+                raw = get_message_raw(creds, mid)
                 result = process_email(f"gmail-{mid}.eml", raw, case.id, db)
-                results.append({
-                    "message_id": mid, "status": "analyzed", "email_id": result.get("email_id"),
-                    "analysis_id": result.get("analysis_id"), "case_id": case.id,
-                    "subject": _header(parsed, "Subject"), "sender": _header(parsed, "From"),
-                    "date": _header(parsed, "Date"), "classification": result.get("classification"),
-                    "risk_score": result.get("risk_score"), "risk_level": result.get("risk_level"),
-                })
+                results.append({"message_id": mid, "status": "analyzed", "analysis_id": result["analysis_id"]})
             except Exception as exc:
                 db.rollback()
-                results.append({"message_id": mid, "status": "failed", "error": str(exc), "case_id": case.id})
+                results.append({"message_id": mid, "status": "failed", "error": str(exc)})
             _SYNC_JOBS[job_id]["synced"] = results
-        _SYNC_JOBS[job_id].update({"status": "completed", "case_id": case.id, "count": len([x for x in results if x["status"] in ("analyzed", "already_synced")]), "synced": results})
+        _SYNC_JOBS[job_id].update({"status": "completed", "case_id": case.id, "synced": results})
     except Exception as exc:
         db.rollback()
         _SYNC_JOBS[job_id].update({"status": "failed", "error": str(exc)})
     finally:
         db.close()
 
+
 @router.post("/sync", status_code=202)
-def sync(background_tasks: BackgroundTasks, max_emails: int = 10, db: Session = Depends(get_db)):
-    if db.get(GmailConnection, 1) is None:
+def sync(background_tasks: BackgroundTasks, max_emails: int = 10):
+    if _TOKEN is None:
         raise HTTPException(401, "Connect Gmail first.")
     max_emails = max(1, min(max_emails, 25))
     job_id = uuid4().hex
@@ -135,9 +162,10 @@ def sync(background_tasks: BackgroundTasks, max_emails: int = 10, db: Session = 
     background_tasks.add_task(_run_sync, job_id, max_emails)
     return {"job_id": job_id, "status": "queued"}
 
+
 @router.get("/sync/{job_id}")
 def sync_status(job_id: str):
     job = _SYNC_JOBS.get(job_id)
     if job is None:
-        raise HTTPException(404, "Sync job not found. Start a new sync.")
+        raise HTTPException(404, "Sync job not found.")
     return {"job_id": job_id, **job}
