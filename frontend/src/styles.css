@@ -490,3 +490,47 @@ tr:hover td{background:rgba(255,255,255,.38)}
 @media(max-width:380px){
   .workspace main{padding-left:9px;padding-right:9px}.stats-grid{grid-template-columns:1fr}.threat-map{height:320px}.threat-map-shell.compact .threat-map{height:300px}.map-legend{font-size:7px}.map-stat-row>span{width:100%;justify-content:center}.page-header h1{font-size:20px}
 }
+
+/* =========================================================
+   MAP PAGE MOBILE / PHONE UX
+   ========================================================= */
+.map-page-pill{display:inline-flex;align-items:center;gap:6px}
+.satguard-leaflet-map{height:100%;width:100%;background:#dcecf2}
+.map-loading{position:absolute;z-index:650;left:50%;top:12px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(255,255,255,.75);border-radius:999px;background:rgba(248,253,255,.9);backdrop-filter:blur(12px);box-shadow:0 8px 22px rgba(40,80,100,.12);color:#38566b;font-size:9px;font-weight:800;white-space:nowrap}
+.map-loading .spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.map-legend{pointer-events:none}
+.map-legend span{line-height:1.25}
+.leaflet-container{font-family:inherit}
+.leaflet-control-zoom{margin-left:10px!important;margin-top:10px!important}
+.leaflet-control-attribution{margin-bottom:3px!important}
+
+@media(max-width:600px){
+  .map-page-pill{font-size:8px;padding:6px 8px}
+  .threat-map-shell{width:100%;overflow:hidden}
+  .map-toolbar{gap:10px}
+  .map-toolbar-actions{display:grid;grid-template-columns:1fr auto;align-items:center;width:100%}
+  .map-toggle{min-height:34px;padding:0 10px;border:1px solid var(--glass-border);border-radius:10px;background:rgba(255,255,255,.34)}
+  .map-refresh{width:34px;height:34px;display:grid;place-items:center}
+  .map-stat-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+  .map-stat-row>span{justify-content:center;min-width:0;text-align:center;line-height:1.2}
+  .threat-map{height:calc(100svh - 285px);min-height:320px;max-height:470px;border-radius:13px}
+  .threat-map-shell:not(.compact) .threat-map{height:calc(100svh - 300px);min-height:330px;max-height:500px}
+  .map-legend{top:auto;bottom:9px;left:9px;right:9px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:7px;background:rgba(248,253,255,.9)}
+  .map-legend span{justify-content:flex-start;font-size:8px;min-width:0}
+  .map-legend .legend-dot{flex:0 0 8px}
+  .map-loading{top:9px;font-size:8px}
+  .leaflet-control-zoom{margin-left:8px!important;margin-top:8px!important}
+  .leaflet-control-zoom a{width:31px!important;height:31px!important;line-height:31px!important}
+  .map-details-grid{margin-top:10px;gap:9px}
+  .map-selected,.map-coverage{padding:12px}
+}
+
+@media(max-width:380px){
+  .map-stat-row{grid-template-columns:1fr}
+  .map-stat-row>span{width:100%}
+  .threat-map{height:330px;min-height:300px}
+  .threat-map-shell:not(.compact) .threat-map{height:340px;min-height:300px}
+  .map-legend{grid-template-columns:1fr 1fr}
+  .map-toolbar-copy p{font-size:8px}
+}
