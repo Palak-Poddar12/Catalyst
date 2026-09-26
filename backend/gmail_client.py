@@ -1,6 +1,5 @@
 import os
 import base64
-import threading
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
@@ -20,10 +19,7 @@ GMAIL_REDIRECT_URI = os.getenv(
 )
 GMAIL_SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/gmail.modify",
 ]
-_OAUTH_VERIFIERS: Dict[str, str] = {}
-_OAUTH_LOCK = threading.Lock()
 
 
 def _get_flow() -> Flow:
@@ -45,7 +41,7 @@ def _get_flow() -> Flow:
     return flow
 
 
-def get_gmail_authorization_url() -> str:
+def get_gmail_authorization_url():
     flow = _get_flow()
     flow.redirect_uri = GMAIL_REDIRECT_URI
     authorization_url, state = flow.authorization_url(
@@ -55,26 +51,18 @@ def get_gmail_authorization_url() -> str:
     )
     if not flow.code_verifier:
         raise RuntimeError("Google OAuth did not provide a PKCE code verifier")
-    with _OAUTH_LOCK:
-        _OAUTH_VERIFIERS[state] = flow.code_verifier
-    return authorization_url
+    return authorization_url, state, flow.code_verifier
 
 
-def exchange_code_for_tokens(code: str, state: str) -> Credentials:
-    """
-    Exchange OAuth2 authorization code for tokens and return Credentials.
-    """
-    with _OAUTH_LOCK:
-        code_verifier = _OAUTH_VERIFIERS.get(state)
+def exchange_code_for_tokens(code: str, state: str, code_verifier: str) -> Credentials:
+    """Exchange an OAuth2 authorization code using the persisted PKCE verifier."""
     if not code_verifier:
-        raise ValueError("OAuth state is missing or expired. Start a new Gmail connection.")
+        raise ValueError("OAuth PKCE verifier is missing. Start a new Gmail connection.")
 
     flow = _get_flow()
     flow.redirect_uri = GMAIL_REDIRECT_URI
     flow.code_verifier = code_verifier
     flow.fetch_token(code=code, code_verifier=code_verifier)
-    with _OAUTH_LOCK:
-        _OAUTH_VERIFIERS.pop(state, None)
     return flow.credentials
 
 
