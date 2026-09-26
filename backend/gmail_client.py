@@ -1,6 +1,6 @@
 import os
 import base64
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
@@ -34,17 +34,25 @@ def _get_flow() -> Flow:
     return flow
 
 
-def get_gmail_authorization_url() -> tuple[str, str, str]:
+def get_gmail_authorization_data() -> Tuple[str, str, str]:
     flow = _get_flow()
     authorization_url, state = flow.authorization_url(
-        prompt="consent", access_type="offline", include_granted_scopes="true"
+        prompt="consent",
+        access_type="offline",
+        include_granted_scopes="true",
     )
     if not flow.code_verifier:
         raise RuntimeError("Google OAuth did not provide a PKCE code verifier")
     return authorization_url, state, flow.code_verifier
 
 
-def exchange_code_for_tokens(code: str, code_verifier: str) -> Credentials:
+def get_gmail_authorization_url() -> str:
+    return get_gmail_authorization_data()[0]
+
+
+def exchange_code_for_tokens(code: str, state: str, code_verifier: str) -> Credentials:
+    if not code_verifier:
+        raise ValueError("OAuth PKCE verifier is missing. Start a new Gmail connection.")
     flow = _get_flow()
     flow.code_verifier = code_verifier
     flow.fetch_token(code=code, code_verifier=code_verifier)
@@ -55,16 +63,12 @@ def _build_gmail_service(credentials: Credentials):
     return build("gmail", "v1", credentials=credentials)
 
 
-def get_gmail_profile_email(credentials: Credentials) -> str:
-    session = AuthorizedSession(credentials)
-    response = session.get(
-        "https://gmail.googleapis.com/gmail/v1/users/me/profile", timeout=15
-    )
-    response.raise_for_status()
-    return str(response.json().get("emailAddress") or "")
-
-
-def list_recent_message_ids(credentials: Credentials, user_id: str = "me", max_results: int = 10, label_ids: Optional[List[str]] = None) -> List[str]:
+def list_recent_message_ids(
+    credentials: Credentials,
+    user_id: str = "me",
+    max_results: int = 10,
+    label_ids: Optional[List[str]] = None,
+) -> List[str]:
     session = AuthorizedSession(credentials)
     response = session.get(
         f"https://gmail.googleapis.com/gmail/v1/users/{user_id}/messages",
@@ -79,7 +83,8 @@ def get_message_raw(credentials: Credentials, message_id: str, user_id: str = "m
     session = AuthorizedSession(credentials)
     response = session.get(
         f"https://gmail.googleapis.com/gmail/v1/users/{user_id}/messages/{message_id}",
-        params={"format": "raw"}, timeout=15,
+        params={"format": "raw"},
+        timeout=15,
     )
     response.raise_for_status()
     raw_b64 = response.json()["raw"]
