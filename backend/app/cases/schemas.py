@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 class CaseCreate(BaseModel):
@@ -12,5 +13,19 @@ class CaseResponse(BaseModel):
     name: str
     description: str
     severity: str
+    case_id: int | None = None
+    subject: str | None = None
+    sender: str | None = None
+    recipient: str | None = None
+    classification: str | None = None
+    risk_score: float | None = None
+    risk_level: str | None = None
+    status: str = "OPEN"
+    email_count: int = 0
+    latest_analysis_id: int | None = None
+    latest_email_id: int | None = None
+    created_at: Any | None = None
+    updated_at: Any | None = None
+    analysis: dict[str, Any] | None = None
 
     model_config = ConfigDict(from_attributes=True)
