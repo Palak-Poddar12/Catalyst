@@ -6,7 +6,7 @@ import {can} from '../utils/permissions';
 
 const groups=[
   {title:'Operations',items:[['Dashboard','/dashboard',LayoutDashboard,'dashboard:view'],['Investigations','/cases',FolderSearch,'case:view'],['New Investigation','/investigations/new',FilePlus2,'email:upload'],['Threat Intelligence','/intelligence',Globe2,'threatintel:view'],['Reports','/reports',FileBarChart2,'report:view']]},
-  {title:'Investigation',items:[['IOC Graph','/cases',Network,'graph:view'],['Infrastructure Map','/cases',Globe2,'map:view'],['Campaigns','/cases',Layers3,'campaign:view'],['Gmail','/gmail',MailSearch,'gmail:investigate']]},
+  {title:'Investigation',items:[['IOC Graph','/cases',Network,'graph:view'],['Infrastructure Map','/map',Globe2,'map:view'],['Campaigns','/cases',Layers3,'campaign:view'],['Gmail','/gmail',MailSearch,'gmail:investigate']]},
   {title:'Administration',items:[['Audit Logs','/admin/audit',ScrollText,'audit:view'],['Users','/admin/users',Users,'users:manage'],['Roles & Permissions','/admin/roles',KeyRound,'roles:manage'],['System Settings','/admin/settings',Settings,'system:manage']]}
 ];
 
@@ -29,7 +29,7 @@ export function AppShell({session,children}){
       <nav>
         {groups.map(g=><div className="nav-group" key={g.title}>
           <span className="nav-label">{g.title}</span>
-          {g.items.filter(x=>can(role,x[3])).map(([label,path,Icon])=><NavLink key={label} to={path} onClick={()=>setOpen(false)} className={({isActive})=>`nav-item ${isActive||((label==='Investigations'||label==='IOC Graph'||label==='Infrastructure Map'||label==='Campaigns')&&loc.pathname.startsWith('/cases'))?'active':''}`}>
+          {g.items.filter(x=>can(role,x[3])).map(([label,path,Icon])=><NavLink key={label} to={path} onClick={()=>setOpen(false)} className={({isActive})=>`nav-item ${isActive||((label==='Investigations'||label==='IOC Graph'||label==='Campaigns')&&loc.pathname.startsWith('/cases'))?'active':''}`}>
             <span className="nav-icon"><Icon size={16}/></span><span>{label}</span>
           </NavLink>)}
         </div>)}
