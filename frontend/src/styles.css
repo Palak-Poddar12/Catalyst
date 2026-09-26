@@ -534,3 +534,60 @@ tr:hover td{background:rgba(255,255,255,.38)}
   .map-legend{grid-template-columns:1fr 1fr}
   .map-toolbar-copy p{font-size:8px}
 }
+
+
+/* =========================================================
+   PHONE TOP NAVIGATION — reference-inspired mobile shell
+   Desktop layout remains unchanged.
+   ========================================================= */
+.mobile-menu-trigger{display:none}
+.mobile-brand-mark{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.84);box-shadow:inset 0 1px rgba(255,255,255,.95),0 5px 14px rgba(45,87,108,.08);color:#168eb6}
+
+@media(max-width:900px){
+  .liquid-topbar{
+    position:sticky;
+    top:0;
+    z-index:40;
+    width:100%;
+    height:64px;
+    margin:0;
+    padding:0 14px 0 16px;
+    border-radius:0 0 18px 18px;
+    border-left:0;
+    border-right:0;
+    background:rgba(250,253,255,.76);
+    box-shadow:0 10px 30px rgba(43,84,105,.10),inset 0 1px rgba(255,255,255,.95);
+  }
+  .topbar-left{flex:1;min-width:0}
+  .mobile-brand{display:flex;align-items:center;gap:8px;color:#163149;font-size:14px;letter-spacing:.14em}
+  .mobile-brand b{font-size:14px}
+  .top-search{display:none}
+  .top-actions{margin-left:auto;gap:4px}
+  .top-actions>.system,.top-actions>.glass-icon,.top-actions>.user-chip{display:none}
+  .mobile-menu-trigger{display:grid!important;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.80);color:#31566b;box-shadow:inset 0 1px rgba(255,255,255,.9),0 6px 18px rgba(43,84,105,.08)}
+  .mobile-menu-trigger:active{transform:scale(.96)}
+  .workspace main{padding-top:24px}
+  .liquid-sidebar{left:0;top:0;bottom:0;width:min(318px,88vw);height:100dvh;max-height:none;transform:translateX(-105%);border-radius:0 26px 26px 0;z-index:60}
+  .liquid-sidebar.open{transform:translateX(0)}
+  .drawer-scrim{z-index:55;background:rgba(24,57,73,.20);backdrop-filter:blur(4px)}
+  .brand{height:74px;padding:16px 15px}
+  .brand .mobile-only{display:grid}
+}
+
+@media(max-width:600px){
+  .liquid-topbar{height:60px;padding:0 12px 0 14px;border-radius:0 0 16px 16px}
+  .mobile-brand{font-size:13px;letter-spacing:.13em}
+  .mobile-brand b{font-size:13px}
+  .mobile-brand-mark{width:29px;height:29px;border-radius:9px}
+  .mobile-menu-trigger{width:38px;height:38px}
+  .workspace main{padding:22px 12px 40px}
+}
+
+@media(max-width:380px){
+  .liquid-topbar{height:58px;padding-left:11px;padding-right:9px}
+  .mobile-brand{gap:7px}
+  .mobile-brand-mark{width:27px;height:27px}
+  .mobile-brand b{font-size:12px}
+  .mobile-menu-trigger{width:36px;height:36px}
+  .workspace main{padding-left:9px;padding-right:9px}
+}
