@@ -35,6 +35,22 @@ function FitBounds({ points }) {
   return null;
 }
 
+function MapResizeSync() {
+  const map = useMap();
+  useEffect(() => {
+    const resize = () => map.invalidateSize({ pan: false, animate: false });
+    const timer = window.setTimeout(resize, 80);
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', resize);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('orientationchange', resize);
+    };
+  }, [map]);
+  return null;
+}
+
 function asGeo(details = {}) {
   return details.geolocation || details.geoip || details.geo || details;
 }
@@ -190,8 +206,16 @@ export default function ThreatMap({ compact = false, maxCases = 20 }) {
       </div>
 
       <div className="threat-map">
-        <MapContainer center={CENTER} zoom={4} scrollWheelZoom style={{ height: '100%', width: '100%' }}>
+        <MapContainer
+          center={CENTER}
+          zoom={4}
+          scrollWheelZoom={false}
+          className="satguard-leaflet-map"
+          zoomControl
+          attributionControl
+        >
           <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <MapResizeSync />
           <FitBounds points={visible} />
           {lines.map((line) => <Polyline key={line.id} positions={line.positions} pathOptions={{ color: '#168eb6', weight: 2, opacity: 0.45, dashArray: '5 7' }} />)}
           {visible.map((p) => (
@@ -213,11 +237,12 @@ export default function ThreatMap({ compact = false, maxCases = 20 }) {
           {!visible.length && <CircleMarker center={CENTER} radius={8} pathOptions={{ color: '#168eb6', fillColor: '#168eb6', fillOpacity: 0.3 }}><Popup>No geolocated public IPs are available yet. Add GeoLite2 City/ASN data to the backend for real coordinates.</Popup></CircleMarker>}
         </MapContainer>
         <div className="map-legend">
-          <span><i className="legend-dot critical" /> Critical / suspicious</span>
-          <span><i className="legend-dot high" /> High risk</span>
+          <span><i className="legend-dot critical" /> Critical</span>
+          <span><i className="legend-dot high" /> High</span>
           <span><i className="legend-dot medium" /> Context</span>
           <span><i className="legend-dot origin" /> Probable origin</span>
         </div>
+        {loading && <div className="map-loading"><RefreshCw size={13} className="spin" /> Updating infrastructure…</div>}
         {error && <div className="map-error">{error}</div>}
       </div>
 
