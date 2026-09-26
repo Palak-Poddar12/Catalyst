@@ -78,4 +78,3 @@ class GmailOAuthState(Base):
     redirect_uri: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    consumed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
