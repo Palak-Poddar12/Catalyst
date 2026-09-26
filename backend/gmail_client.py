@@ -47,18 +47,17 @@ def get_gmail_authorization_url():
     authorization_url, state = flow.authorization_url(
         prompt="consent",
         access_type="offline",
-        include_granted_scopes="true",
+        include_granted_scopes="false",
     )
     if not flow.code_verifier:
         raise RuntimeError("Google OAuth did not provide a PKCE code verifier")
     return authorization_url, state, flow.code_verifier
 
 
-def exchange_code_for_tokens(code: str, state: str, code_verifier: str) -> Credentials:
-    """Exchange an OAuth2 authorization code using the persisted PKCE verifier."""
+def exchange_code_for_tokens(code: str, code_verifier: str) -> Credentials:
+    """Exchange an OAuth2 authorization code using a persisted PKCE verifier."""
     if not code_verifier:
         raise ValueError("OAuth PKCE verifier is missing. Start a new Gmail connection.")
-
     flow = _get_flow()
     flow.redirect_uri = GMAIL_REDIRECT_URI
     flow.code_verifier = code_verifier
