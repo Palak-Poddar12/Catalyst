@@ -3,6 +3,17 @@ from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database.database import Base
 
+class GmailOAuthState(Base):
+    __tablename__ = "gmail_oauth_states"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    state_hash: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    code_verifier: Mapped[str] = mapped_column(Text, nullable=False)
+    redirect_uri: Mapped[str] = mapped_column(String(1000), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
 class Case(Base):
     __tablename__ = "cases"
 
@@ -67,23 +78,3 @@ class Finding(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     severity: Mapped[str] = mapped_column(String(50), nullable=False)
     evidence: Mapped[str] = mapped_column(Text, default="", nullable=False)
-
-
-class GmailOAuthState(Base):
-    __tablename__ = "gmail_oauth_states"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    state_hash: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
-    code_verifier: Mapped[str] = mapped_column(Text, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-
-
-class GmailConnection(Base):
-    __tablename__ = "gmail_connections"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email_address: Mapped[str] = mapped_column(String(320), default="", nullable=False)
-    token_json: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
