@@ -41,8 +41,6 @@ def process_email(filename: str, content: bytes, case_id: int, db):
     ml_features["email_text"] = email_text
     ml = MLClient().predict(ml_features)
 
-    final = aggregate_risk(forensic, ml)
-
     email = Email(
         case_id=case_id,
         filename=filename,
@@ -62,12 +60,12 @@ def process_email(filename: str, content: bytes, case_id: int, db):
             "indicators": raw.get("indicators", {}),
             "forensic_limitations": raw.get("forensic_limitations", []),
             "ml_result": ml,
-            "assessment_mode": final["assessment_mode"],
-            "threat_score_explanation": "Combined ML + forensic assessment when ML is available; otherwise the displayed threat score is derived from independent email-forensic evidence.",
         }, ensure_ascii=False),
     )
     db.add(email)
     db.flush()
+
+    final = aggregate_risk(forensic, ml)
 
     # Keep the complete Member 1 forensic JSON in the existing metadata field
     # so the MVP can expose all forensic evidence without a schema migration.
@@ -119,6 +117,7 @@ def process_email(filename: str, content: bytes, case_id: int, db):
         "message": "Email analyzed successfully",
         "analysis_id": analysis.id,
         "case_id": case_id,
+        "email_id": email.id,
         "classification": analysis.classification,
         "risk_score": analysis.final_risk_score,
         "risk_level": analysis.risk_level,
