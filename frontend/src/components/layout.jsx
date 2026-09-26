@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import {NavLink,useNavigate,useLocation} from 'react-router-dom';
-import {Shield,LayoutDashboard,FolderSearch,FilePlus2,Globe2,Network,Layers3,FileBarChart2,MailSearch,ScrollText,Users,KeyRound,Settings,UserCircle,LogOut,X,Bell,Search,Activity,ChevronDown,PanelLeft,MoreVertical} from 'lucide-react';
+import {Shield,LayoutDashboard,FolderSearch,FilePlus2,Globe2,Network,Layers3,FileBarChart2,MailSearch,ScrollText,Users,KeyRound,Settings,UserCircle,LogOut,Menu,X,Bell,Search,Activity,ChevronDown} from 'lucide-react';
 import {clearSession,roleOf} from '../utils/auth';
 import {can} from '../utils/permissions';
 
@@ -43,7 +43,8 @@ export function AppShell({session,children}){
     <div className="workspace">
       <header className="topbar liquid-topbar">
         <div className="topbar-left">
-          <div className="mobile-brand"><span className="mobile-brand-mark"><Shield size={17}/></span><b>SATGUARD</b></div>
+          <button className="icon-btn mobile-only" onClick={()=>setOpen(true)}><Menu size={20}/></button>
+          <div className="mobile-brand"><Shield size={16}/><b>SATGUARD</b></div>
           <div className="top-search"><Search size={16}/><input placeholder="Search investigations, IOCs, cases…" onKeyDown={e=>{if(e.key==='Enter'&&e.currentTarget.value)nav('/intelligence?q='+encodeURIComponent(e.currentTarget.value))}}/></div>
         </div>
         <div className="top-actions">
@@ -54,16 +55,23 @@ export function AppShell({session,children}){
             <span className="user-meta"><b>{session?.user?.name||session?.user?.email||'Analyst'}</b><small>{role}</small></span>
             <ChevronDown size={14}/>
           </button>
-          <button className="icon-btn mobile-menu-trigger" onClick={()=>setOpen(true)} aria-label="Open SatGuard menu" title="Menu"><MoreVertical size={23}/></button>
         </div>
       </header>
       <main>{children}</main>
-      <div className="bottom-dock">
-        <span className="dock-active"><PanelLeft size={15}/><span>Workspace</span></span>
-        <span><Shield size={15}/><span>Protected</span></span>
-        <span><Activity size={15}/><span>Live telemetry</span></span>
-        <span className="dock-status"><i/>Operational</span>
-      </div>
+      <nav className="bottom-dock mobile-bottom-nav" aria-label="Mobile navigation">
+        <NavLink to="/dashboard" className={({isActive})=>`mobile-dock-item ${isActive?'active':''}`}>
+          <LayoutDashboard size={18}/><span>Dashboard</span>
+        </NavLink>
+        <NavLink to="/cases" className={({isActive})=>`mobile-dock-item ${isActive?'active':''}`}>
+          <FolderSearch size={18}/><span>Investigations</span>
+        </NavLink>
+        <NavLink to="/intelligence" className={({isActive})=>`mobile-dock-item ${isActive?'active':''}`}>
+          <Globe2 size={18}/><span>Threat Intelligence</span>
+        </NavLink>
+        <NavLink to="/reports" className={({isActive})=>`mobile-dock-item ${isActive?'active':''}`}>
+          <FileBarChart2 size={18}/><span>Reports</span>
+        </NavLink>
+      </nav>
     </div>
   </div>
 }
