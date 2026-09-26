@@ -124,7 +124,7 @@ function extractPoints(analysis) {
   return result.map((p) => ({ ...p, origin: Boolean(p.origin || (probableIp && p.ip === probableIp)), risk: riskFrom({ ...p, origin: Boolean(p.origin || (probableIp && p.ip === probableIp)) }) }));
 }
 
-export default function ThreatMap({ compact = false, maxCases = 20 }) {
+export default function ThreatMap({ compact = false, maxCases = 20, analysisId = null }) {
   const [points, setPoints] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -135,16 +135,20 @@ export default function ThreatMap({ compact = false, maxCases = 20 }) {
     setLoading(true);
     setError('');
     try {
-      const casesResponse = await getCases();
-      const cases = Array.isArray(casesResponse?.data) ? casesResponse.data : casesResponse?.data?.items || [];
       const output = [];
-
-      for (const c of cases.slice(0, maxCases)) {
-        const summaryResponse = await getCaseAnalyses(c.id).catch(() => null);
-        const analyses = summaryResponse?.data?.analyses || [];
-        for (const summary of analyses.slice(0, 3)) {
-          const fullResponse = await getAnalysis(summary.id).catch(() => null);
-          if (fullResponse?.data) output.push(...extractPoints(fullResponse.data));
+      if (analysisId) {
+        const fullResponse = await getAnalysis(analysisId);
+        if (fullResponse?.data) output.push(...extractPoints(fullResponse.data));
+      } else {
+        const casesResponse = await getCases();
+        const cases = Array.isArray(casesResponse?.data) ? casesResponse.data : casesResponse?.data?.items || [];
+        for (const c of cases.slice(0, maxCases)) {
+          const summaryResponse = await getCaseAnalyses(c.id).catch(() => null);
+          const analyses = summaryResponse?.data?.analyses || [];
+          for (const summary of analyses.slice(0, 3)) {
+            const fullResponse = await getAnalysis(summary.id).catch(() => null);
+            if (fullResponse?.data) output.push(...extractPoints(fullResponse.data));
+          }
         }
       }
 
