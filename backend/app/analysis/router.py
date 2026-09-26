@@ -18,6 +18,13 @@ def serialize(x, email=None):
         "forensic_score": x.forensic_score,
         "final_risk_score": x.final_risk_score,
         "risk_level": x.risk_level,
+        "assessment_mode": (json.loads(email.raw_metadata or "{}").get("assessment_mode") if email else None),
+        "risk_breakdown": {
+            "threat_score": round(float(x.final_risk_score or 0) * 100),
+            "ml_score": round(float(x.ml_risk_score or 0) * 100) if x.ml_status == "success" else None,
+            "forensic_score": round(float(x.forensic_score or 0) * 100),
+            "ml_confidence": round(float(x.ml_confidence or 0) * 100) if x.ml_status == "success" else None,
+        },
         "email": {
             "filename": email.filename,
             "message_id": email.message_id,
@@ -29,6 +36,10 @@ def serialize(x, email=None):
             "forensic_report": json.loads(email.raw_metadata or "{}").get("raw_forensic_result"),
         } if email else None,
         "findings": json.loads(x.findings_json or "[]"),
+        "explanation": [
+            {"title": f.get("title", "Forensic finding"), "severity": f.get("severity", "MEDIUM"), "evidence": f.get("evidence") or f.get("description", "")}
+            for f in json.loads(x.findings_json or "[]")
+        ],
         "iocs": json.loads(x.iocs_json or "[]"),
         "timeline": json.loads(x.timeline_json or "[]"),
         "graph": json.loads(x.graph_json or "{}"),
