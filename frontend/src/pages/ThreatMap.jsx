@@ -1,3 +1,18 @@
-import {useEffect,useState} from 'react';import ThreatLeafletMap from '../components/Map';import {getCases,getCaseAnalyses} from '../api';
-const demo=[{id:'demo-bhopal',lat:23.2599,lng:77.4126,ip:'203.0.113.17',city:'Bhopal',country:'India',asn:'Demo ASN',label:'Demo suspicious relay · Bhopal'},{id:'demo-delhi',lat:28.6139,lng:77.209,ip:'198.51.100.44',city:'New Delhi',country:'India',asn:'Demo ASN',label:'Demo infrastructure · New Delhi'},{id:'demo-singapore',lat:1.3521,lng:103.8198,ip:'192.0.2.81',city:'Singapore',country:'Singapore',asn:'Demo ASN',label:'Demo cloud relay · Singapore'}];
-export default function ThreatMap(){const [points,setPoints]=useState(demo);useEffect(()=>{(async()=>{try{const cs=await getCases();const out=[];for(const c of cs.slice(0,20)){const a=await getCaseAnalyses(c.id).catch(()=>[]);const arr=Array.isArray(a)?a:(a?.items||[]);for(const x of arr.slice(0,3)){const raw=x.iocs_json||x.iocs||[];for(const i of raw){const g=i.geoip||i.geo||{};if(g.lat!=null&&g.lon!=null)out.push({id:`${x.id}-${i.value}`,lat:g.lat,lng:g.lon,ip:i.value,city:g.city,country:g.country,asn:g.asn,label:`${i.type||'IOC'} · ${i.value}`})}}}if(out.length)setPoints(out)}catch{}})()},[]);return <><div className="panel"><div className="panel-head"><div><div className="eyebrow">INFRASTRUCTURE GEOLOCATION</div><h3>Global threat map</h3><p>Leaflet + OpenStreetMap — no Google Maps API key required. Points are infrastructure context, not proof of attacker identity.</p></div><span className="small-chip">{points.length} POINTS</span></div><ThreatLeafletMap points={points}/></div><div className="panel"><h3>Mapped infrastructure</h3><div className="table-wrap"><table><thead><tr><th>Point</th><th>IP</th><th>Location</th><th>ASN</th></tr></thead><tbody>{points.map(p=><tr key={p.id}><td>{p.label}</td><td className="mono">{p.ip}</td><td>{p.city||'—'}, {p.country||'—'}</td><td>{p.asn||'—'}</td></tr>)}</tbody></table></div></div></>}
+import React from 'react';
+import { PageHeader, Section } from '../components/ui';
+import ThreatMap from '../components/ThreatMap';
+
+export default function ThreatMapPage() {
+  return (
+    <>
+      <PageHeader
+        eyebrow="INVESTIGATION / GEOLOCATION"
+        title="Infrastructure & Origin Map"
+        subtitle="Trace suspicious relay infrastructure, approximate geolocation and probable source context from analyzed email evidence."
+      />
+      <Section title="Threat infrastructure" subtitle="Leaflet + OpenStreetMap. Locations are approximate network intelligence, not identity attribution.">
+        <ThreatMap />
+      </Section>
+    </>
+  );
+}

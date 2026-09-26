@@ -28,37 +28,32 @@ export default function NewInvestigation() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
-async function run() {
-  if (!file) return;
+  async function run() {
+    if (!file) return;
 
-  setBusy(true);
-  setErr(null);
-  setResult(null);
+    setBusy(true);
+    setErr(null);
+    setResult(null);
 
-  try {
-    const caseResponse = await createCase({
-      title: `Email Investigation - ${file.name}`,
-      name: `Email Investigation - ${file.name}`,
-      description: "Uploaded EML forensic investigation",
-      severity: "LOW",
-    });
+    try {
+      // 1. Create investigation case first
+      const caseData = await createCase({
+        title: `Email Investigation - ${file.name}`,
+        name: `Email Investigation - ${file.name}`,
+        description: "Uploaded EML forensic investigation",
+        severity: "LOW",
+      });
 
-    const caseData = caseResponse.data;
+      // 2. Upload the EML against the created case
+      const resultData = await uploadEmail(caseData.id, file);
 
-    const uploadResponse = await uploadEmail(
-      caseData.id,
-      file
-    );
-
-    const resultData = uploadResponse.data;
-
-    setResult(resultData);
-  } catch (e) {
-    setErr(e);
-  } finally {
-    setBusy(false);
+      setResult(resultData);
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
   }
-}
 
   return (
     <>
