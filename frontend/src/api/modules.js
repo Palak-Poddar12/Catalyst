@@ -14,7 +14,7 @@ export const emailApi = {
   },
 };
 export const analysisApi={run:(id)=>api.post(`/analysis/${id}`),get:(id)=>api.get(`/analysis/${id}`)};
-export const intelApi={ip:(ip)=>api.get(`/intel/ip/${encodeURIComponent(ip)}`),domain:(d)=>api.get(`/intel/domain/${encodeURIComponent(d)}`),url:(u)=>api.get(`/intel/url/${encodeURIComponent(u)}`)};
+export const intelApi={ip:(ip)=>api.get(`/intel/ip/${encodeURIComponent(ip)}`),domain:(d)=>api.get(`/intel/domain/${encodeURIComponent(d)}`),url:(u)=>api.get('/intel/url',{params:{url:u}})};
 export const advancedApi={analysis:(id)=>api.get(`/advanced/analysis/${id}`),search:(q)=>api.get('/advanced/search',{params:{q}})};
 export const reportsApi={list:(params)=>api.get('/reports',{params}),generate:(data)=>api.post('/reports',data),download:(id)=>api.get(`/reports/${id}/download`,{responseType:'blob'})};
 export const gmailApi={status:()=>api.get('/gmail/status'),messages:(params)=>api.get('/gmail/messages',{params}),triage:(data)=>api.post('/gmail/triage',data)};

@@ -18,4 +18,5 @@ export const reportPdf = (id) => `${import.meta.env.VITE_API_BASE_URL}/reports/$
 export const reportJson=(id)=>api(`/reports/${id}`);
 export const gmailAuth=()=>api('/gmail/auth-url');
 export const gmailStatus=()=>api('/gmail/status');
-export const gmailSync=()=>api('/gmail/sync',{method:'POST'});
+export const gmailSync=(max_emails=10)=>api.post('/gmail/sync',{},{params:{max_emails}}).then(r=>r.data);
+export const gmailSyncStatus=(jobId)=>api.get(`/gmail/sync/${encodeURIComponent(jobId)}`).then(r=>r.data);
