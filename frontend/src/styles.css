@@ -784,36 +784,35 @@ tr:hover td{background:rgba(255,255,255,.38)}
 
 
 /* =========================================================
-   SATGUARD LIGHT THEME ACCESSIBILITY POLISH
-   - Bottom navigation is mobile-only; never render it on laptop/desktop.
-   - Technical/IP/IOC values use a deeper teal for readable contrast.
+   SATGUARD DASHBOARD FINAL POLISH
+   Desktop: no floating mobile dock.
+   Mobile: dedicated mobile-bottom-nav remains visible.
    ========================================================= */
-@media (max-width: 900px){
-  .mobile-bottom-nav.bottom-dock{display:flex;}
-}
+.bottom-dock{display:none!important}
+.dashboard-head-actions{display:flex;align-items:center;gap:8px}
+.dashboard-refresh{flex:0 0 auto}
+.dashboard-refresh .spin{animation:sg-spin .8s linear infinite}
+@keyframes sg-spin{to{transform:rotate(360deg)}}
+.dashboard-bars{align-items:flex-end;min-height:190px;padding:18px 12px 12px}
+.dashboard-bars .bar-col{position:relative;justify-content:flex-end;min-height:160px;gap:7px}
+.dashboard-bars .bar-col>b{font-size:11px;color:#23435b;line-height:1;min-height:12px}
+.dashboard-bars .bar-col>span{display:block;width:min(34px,70%);min-height:4px;border-radius:9px 9px 4px 4px;background:linear-gradient(180deg,#3aa8cc,#168eb6);box-shadow:0 8px 18px rgba(22,142,182,.16)}
+.dashboard-bars .bar-col small{color:#708598;font-size:9px;white-space:nowrap}
+.dashboard-empty{padding:4px;min-height:180px;display:grid;place-items:center}
+.dashboard-footnote{display:flex;align-items:center;gap:7px;margin-top:4px;color:#61788b;font-size:10px}
 
-.forensic-fields code,
-.mono,
-.hash{
-  color:#17637d;
-}
+/* Technical values/IPs/IOCs need stronger contrast on the light glass theme. */
+.ioc-type,.origin-callout>span,.graph-list span{color:#0f6f91}
+.origin-callout>span{font-weight:700}
+.kv>b,.mini-grid b,.mail-preview-meta span b{color:#17364f}
+.mail-raw-preview{color:#d9edf5}
 
-.origin-callout>span{
-  color:#17637d;
+@media (max-width:900px){
+  .bottom-dock{display:none!important}
+  .mobile-bottom-nav{display:flex!important}
+  .workspace main{padding-bottom:100px}
 }
-
-.graph-list span{
-  color:#17637d;
-}
-
-.ioc-type{
-  color:#17637d;
-}
-
-.pipeline-node.reachable{
-  color:#17637d;
-}
-
-.pipeline-node.reachable span{
-  color:#17637d;
+@media (min-width:901px){
+  .mobile-bottom-nav{display:none!important}
+  .workspace main{padding-bottom:50px}
 }
