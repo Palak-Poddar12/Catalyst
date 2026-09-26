@@ -24,11 +24,11 @@ const steps = [
 ];
 
 export default function NewInvestigation() {
-  const navigate = useNavigate();
   const [file, setFile] = useState(null);
   const [result, setResult] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
+  const navigate = useNavigate();
 
   async function run() {
     if (!file) return;
@@ -51,18 +51,14 @@ export default function NewInvestigation() {
 
       setResult(resultData);
 
-      const resolvedCaseId = resultData?.case_id ?? caseData?.id;
-      const resolvedAnalysisId = resultData?.analysis_id ?? resultData?.id;
+      const caseId = resultData?.case_id ?? caseData?.id;
+      const analysisId = resultData?.analysis_id ?? resultData?.id;
 
-      if (!resolvedCaseId) {
-        throw new Error("Backend upload succeeded but did not return a case ID.");
-      }
+      if (!caseId) throw new Error("Backend did not return a case ID.");
 
-      const query = resolvedAnalysisId
-        ? `?analysisId=${encodeURIComponent(resolvedAnalysisId)}`
-        : "";
-
-      navigate(`/cases/${encodeURIComponent(resolvedCaseId)}${query}`, { replace: true });
+      // Always enter the real case workspace after a successful upload.
+      // analysisId is passed so the workspace can load the exact uploaded analysis.
+      navigate(`/investigations/${encodeURIComponent(caseId)}${analysisId ? `?analysisId=${encodeURIComponent(analysisId)}` : ""}`, { replace: true });
     } catch (e) {
       setErr(e);
     } finally {
