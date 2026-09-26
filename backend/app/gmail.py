@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+import secrets
 from datetime import datetime, timedelta
 from uuid import uuid4
 from pathlib import Path
@@ -49,49 +50,58 @@ def _hash_state(state: str) -> str:
     return hashlib.sha256(state.encode("utf-8")).hexdigest()
 
 
+def _cleanup_oauth_states(db: Session) -> None:
+    now = datetime.utcnow()
+    db.query(GmailOAuthState).filter(GmailOAuthState.expires_at <= now).delete(synchronize_session=False)
+    db.commit()
+
+
 @router.get("/auth-url")
 def auth_url(db: Session = Depends(get_db)):
     if not GMAIL_CLIENT_ID or not GMAIL_CLIENT_SECRET:
         raise HTTPException(503, "Gmail OAuth is not configured. Set GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET.")
-
-    now = datetime.utcnow()
-    db.query(GmailOAuthState).filter(
-        GmailOAuthState.expires_at < now
-    ).delete(synchronize_session=False)
-
-    authorization_url, state, code_verifier = get_gmail_authorization_url()
-    db.add(
-        GmailOAuthState(
+    try:
+        _cleanup_oauth_states(db)
+        authorization_url, state, code_verifier = get_gmail_authorization_url()
+        record = GmailOAuthState(
             state_hash=_hash_state(state),
             code_verifier=code_verifier,
             redirect_uri=GMAIL_REDIRECT_URI,
-            created_at=now,
-            expires_at=now + timedelta(minutes=10),
+            expires_at=datetime.utcnow() + timedelta(minutes=10),
         )
-    )
-    db.commit()
-    return {"authorization_url": authorization_url}
+        db.add(record)
+        db.commit()
+        return {"authorization_url": authorization_url}
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(500, f"Unable to start Gmail OAuth: {exc}") from exc
 
 
 @router.get("/callback")
 def callback(code: str, state: str, db: Session = Depends(get_db)):
     global _TOKEN
-    oauth_state = db.query(GmailOAuthState).filter(
-        GmailOAuthState.state_hash == _hash_state(state),
-        GmailOAuthState.consumed_at.is_(None),
-    ).first()
-
-    if oauth_state is None or oauth_state.expires_at < datetime.utcnow():
-        raise HTTPException(400, "Gmail OAuth state is missing or expired. Start a new Gmail connection.")
-
-    if oauth_state.redirect_uri != GMAIL_REDIRECT_URI:
-        raise HTTPException(400, "Gmail OAuth redirect URI does not match the configured callback URI.")
-
+    record = None
     try:
-        credentials = exchange_code_for_tokens(code, state, oauth_state.code_verifier)
+        _cleanup_oauth_states(db)
+        record = (
+            db.query(GmailOAuthState)
+            .filter(GmailOAuthState.state_hash == _hash_state(state))
+            .first()
+        )
+        if record is None:
+            raise ValueError("OAuth state is missing or expired. Start a new Gmail connection.")
+        if record.redirect_uri != GMAIL_REDIRECT_URI:
+            raise ValueError("OAuth redirect URI does not match the configured Gmail redirect URI.")
+        if record.expires_at <= datetime.utcnow():
+            db.delete(record)
+            db.commit()
+            raise ValueError("OAuth state is expired. Start a new Gmail connection.")
+
+        credentials = exchange_code_for_tokens(code, record.code_verifier)
         _TOKEN = credentials.to_json()
         _save_token(_TOKEN)
-        oauth_state.consumed_at = datetime.utcnow()
+
+        db.delete(record)
         db.commit()
         return RedirectResponse(url=f"{_FRONTEND_URL}/gmail?connected=1", status_code=303)
     except Exception as exc:
@@ -99,7 +109,7 @@ def callback(code: str, state: str, db: Session = Depends(get_db)):
         raise HTTPException(
             400,
             "Gmail OAuth failed while exchanging the authorization code. "
-            "Start a fresh consent flow and verify the Google OAuth redirect URI "
+            "Use a fresh consent flow and verify the Google OAuth redirect URI "
             f"matches {GMAIL_REDIRECT_URI}. Details: {exc}",
         ) from exc
 
