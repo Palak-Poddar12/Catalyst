@@ -1,14 +1,11 @@
 import {api} from './client';
 export const getCases=()=>api('/cases');
-export const createCase=(payload)=>api('/cases',{method:'POST',body:JSON.stringify(payload)});
+export const createCase=(payload)=>api.post('/cases', payload).then((response) => response.data);
 export const uploadEmail = (caseId, file) => {
   const fd = new FormData();
   fd.append("file", file);
 
-  return api(`/emails/upload/${encodeURIComponent(caseId)}`, {
-    method: "POST",
-    body: fd,
-  });
+  return api.post(`/emails/upload/${encodeURIComponent(caseId)}`, fd).then((response) => response.data);
 };
 export const getCase=(id)=>api(`/cases/${id}`);
 export const getCaseAnalyses=(id)=>api(`/analysis/case/${id}`);
