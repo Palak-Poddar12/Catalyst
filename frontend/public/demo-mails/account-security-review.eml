@@ -1,0 +1,21 @@
+From: Account Security <security@northstar-account.example>
+To: investigator@satguard.local
+Reply-To: verify@northstar-verify.example
+Return-Path: <bounce@northstar-mail.example>
+Subject: Immediate verification required
+Date: Sat, 26 Sep 2026 10:14:22 +0530
+Message-ID: <security-review-260926@northstar-account.example>
+Received: from relay.northstar-mail.example (relay.northstar-mail.example [203.0.113.42]) by mx.satguard.local with ESMTPS id A1B2C3; Sat, 26 Sep 2026 10:14:21 +0530
+Authentication-Results: mx.satguard.local; spf=fail smtp.mailfrom=northstar-mail.example; dkim=fail header.d=northstar-account.example; dmarc=fail header.from=northstar-account.example
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Your account requires immediate security verification.
+
+To prevent temporary access restrictions, verify your account at:
+http://account-verification.northstar-account.example/secure/login
+
+Please complete verification within 30 minutes.
+
+Security Operations
+Northstar Account Services

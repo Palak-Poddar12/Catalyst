@@ -1,0 +1,18 @@
+From: Meridian Billing <billing@meridian-payments.example>
+To: investigator@satguard.local
+Reply-To: confirm@meridian-verify.example
+Return-Path: <notice@meridian-mail.example>
+Subject: Payment confirmation required today
+Date: Sat, 26 Sep 2026 11:26:10 +0530
+Message-ID: <invoice-88421@meridian-payments.example>
+Received: from edge.meridian-mail.example (edge.meridian-mail.example [198.51.100.77]) by mx.satguard.local with ESMTPS id D4E5F6; Sat, 26 Sep 2026 11:26:08 +0530
+Authentication-Results: mx.satguard.local; spf=fail smtp.mailfrom=meridian-mail.example; dkim=fail header.d=meridian-payments.example; dmarc=fail header.from=meridian-payments.example
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+
+<html><body>
+<h2>Payment confirmation required</h2>
+<p>An outstanding invoice requires confirmation before today's processing window.</p>
+<p><a href="http://invoice-confirm.meridian-payments.example/payment/88421">Review invoice and confirm payment</a></p>
+<p>Failure to confirm may delay processing.</p>
+</body></html>

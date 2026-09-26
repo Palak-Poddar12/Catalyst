@@ -1,0 +1,20 @@
+From: Collaboration Desk <documents@collabdesk.example>
+To: investigator@satguard.local
+Reply-To: access@collabdesk-verify.example
+Return-Path: <share@collabdesk-mail.example>
+Subject: A document has been shared with you
+Date: Sat, 26 Sep 2026 12:08:44 +0530
+Message-ID: <document-share-9918@collabdesk.example>
+Received: from gateway.collabdesk-mail.example (gateway.collabdesk-mail.example [192.0.2.91]) by mx.satguard.local with ESMTPS id G7H8I9; Sat, 26 Sep 2026 12:08:42 +0530
+Authentication-Results: mx.satguard.local; spf=fail smtp.mailfrom=collabdesk-mail.example; dkim=fail header.d=collabdesk.example; dmarc=fail header.from=collabdesk.example
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+A protected document has been shared with you.
+
+Open the secure workspace to review the document:
+http://document-access.collabdesk.example/share/9918
+
+The access invitation expires today.
+
+Collaboration Desk
