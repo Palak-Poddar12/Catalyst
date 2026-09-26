@@ -73,8 +73,17 @@ class GmailOAuthState(Base):
     __tablename__ = "gmail_oauth_states"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    state_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    state_hash: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
     code_verifier: Mapped[str] = mapped_column(Text, nullable=False)
-    redirect_uri: Mapped[str] = mapped_column(Text, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class GmailConnection(Base):
+    __tablename__ = "gmail_connections"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email_address: Mapped[str] = mapped_column(String(320), default="", nullable=False)
+    token_json: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
